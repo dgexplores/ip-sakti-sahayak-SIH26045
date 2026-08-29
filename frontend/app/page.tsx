@@ -9,6 +9,7 @@ import { FreeBadge, OfflineReadyBanner } from "@/components/FreeBadge";
 import { GlossaryBar } from "@/components/GlossaryTooltip";
 import { ExportButton } from "@/components/ExportButton";
 import { HowItWorks, ComparisonTable } from "@/components/HowItWorks";
+import { SplitViewTrigger } from "@/components/SplitView";
 import { chat, getCorpusVersion, type ChatResponse, type Jurisdiction } from "@/lib/api";
 
 const EXAMPLES = [
@@ -135,6 +136,9 @@ export default function Page() {
             </div>
             {error && <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-800">{error} — is backend on http://localhost:8000 ? <code className="bg-white px-1 rounded">make up</code></div>}
           </div>
+
+          {/* Split view when firewall flags mixed query */}
+          {res?.firewall?.mixed_query && <SplitViewTrigger query={query} lang={lang} />}
 
           {res && (
             <div className="rounded-2xl border-2 bg-white shadow-card overflow-hidden" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" }}>

@@ -86,8 +86,26 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
         # signal to frontend to show flow, but still answer
         pass
 
-    # 8. Confidence + abstention
-    abstention_signal = has_mismatch or not paid.allowed and "paid" in query.lower()
+    # 8. Confidence + abstention — free, robust: also detect out-of-scope (poem/joke/mango) via lexical overlap
+    is_out_of_scope = False
+    try:
+        import re
+
+        OUT_OF_SCOPE = re.compile(r"\b(poem|poetry|joke|story|song|recipe for food|mango poem|write a poem)\b", re.I)
+        if OUT_OF_SCOPE.search(query):
+            is_out_of_scope = True
+        # also if classifier says UNKNOWN + no formulation + no IP keyword + query short generic → likely out of scope
+        if cls.ip_type.value == "unknown" and not cls.needs_formulation_flow and len(query.split()) < 8:
+            # check lexical overlap with top chunks < 0.15 → out of scope
+            q_terms = set(re.findall(r"\w+", query.lower()))
+            top_text = " ".join(c.text.lower() for c in ranked[:2])
+            top_terms = set(re.findall(r"\w+", top_text))
+            overlap = len(q_terms & top_terms) / max(1, len(q_terms))
+            if overlap < 0.18:
+                is_out_of_scope = True
+    except Exception:
+        pass
+    abstention_signal = has_mismatch or (not paid.allowed and "paid" in query.lower()) or is_out_of_scope
     confidence = compute_confidence(ranked, has_abstention_signal=abstention_signal)
     # if paid blocked, append note but don't fail
     citations: list[Citation] = to_citations(ranked[:5])
