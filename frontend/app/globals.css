@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+* { font-variant-ligatures: common-ligatures; }
+body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, sans-serif; }
+
+/* editorial serif for headings */
+.h-display { font-family: Fraunces, serif; letter-spacing: -0.02em; }
+
+/* citation highlight */
+.cite-mark { @apply bg-amber-100 text-amber-900 px-1 py-0.5 rounded text-xs font-medium; }
+.confidence-track { @apply h-1.5 rounded-full bg-stone-100 overflow-hidden; }

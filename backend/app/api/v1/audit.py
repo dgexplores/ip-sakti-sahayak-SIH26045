@@ -1,0 +1,45 @@
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+
+from fastapi import APIRouter
+
+from app.models.schemas import EscalateRequest, EscalateResponse
+from app.services.audit import audit_logger
+
+router = APIRouter()
+
+
+@router.post("/escalate", response_model=EscalateResponse)
+async def escalate(req: EscalateRequest) -> EscalateResponse:
+    ticket_id = f"tick_{uuid.uuid4().hex[:10]}"
+    trace = {
+        "query": req.query,
+        "jurisdiction": req.jurisdiction.value,
+        "reason": req.reason,
+        "citations": [c.model_dump() for c in req.citations],
+        "consent_id": req.consent_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await audit_logger.log_escalation(ticket_id, req.session_id, trace)
+    return EscalateResponse(ticket_id=ticket_id)
+
+
+@router.get("/audit/{session_id}")
+async def get_audit(session_id: str) -> dict:
+    # best-effort read; fallback empty if DB offline
+    try:
+        import json
+        import psycopg
+
+        from app.core.config import get_settings
+
+        dsn = get_settings().database_url.replace("postgresql+psycopg://", "postgresql://")
+        with psycopg.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT event_id, query, jurisdiction, citation_ids, confidence, corpus_version, created_at FROM audit_logs WHERE session_id=%s ORDER BY created_at DESC LIMIT 20", (session_id,))
+                rows = cur.fetchall()
+                return {"session_id": session_id, "events": [{"event_id": r[0], "query": r[1], "jurisdiction": r[2], "citation_ids": json.loads(r[3] or "[]"), "confidence": r[4], "corpus_version": r[5], "created_at": str(r[6])} for r in rows]}
+    except Exception as e:
+        return {"session_id": session_id, "events": [], "note": f"audit DB unavailable: {e}"}

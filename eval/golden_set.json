@@ -1,0 +1,58 @@
+{
+  "cases": [
+    {
+      "query": "Is classical Ashwagandha churna as per Charaka Samhita patentable in India?",
+      "expected_jurisdiction": "india",
+      "expected_ip_type": "patent",
+      "should_abstain": false,
+      "contexts": ["An invention which, in effect, is traditional knowledge or an aggregation or duplication of known properties of traditionally known component(s) — is not patentable. Sec 3(p) Patents Act"],
+      "answer": "No. Under Sec 3(p) Patents Act, a formulation verbatim from a classical text is traditional knowledge and not patentable. TKDL may be cited as prior art. [Patents Act, 1970 — Sec 3(p)]",
+      "citations": [{"locator": "Sec 3(p) — p.4"}]
+    },
+    {
+      "query": "I made a novel Ashwagandha extract with 10x withanolide by new process — can I patent it?",
+      "expected_jurisdiction": "india",
+      "expected_ip_type": "patent",
+      "should_abstain": false,
+      "contexts": ["Proprietary with novel process/dosage is patentable if novelty+inventive step satisfied", "Biological resource access requires NBA/SBB benefit-sharing"],
+      "answer": "Yes, if novel and inventive. File patent + disclose TK origin under WIPO GRATK Art 3 and comply with BDA Sec 7 ABS via SBB/NBA.",
+      "citations": [{"locator": "Sec 3(p)"}, {"locator": "BDA Sec 7"}]
+    },
+    {
+      "query": "WIPO GRATK disclosure requirement for PCT filing with Indian genetic resource",
+      "expected_jurisdiction": "international",
+      "expected_ip_type": "patent",
+      "should_abstain": false,
+      "contexts": ["Where the claimed invention is based on genetic resources, each Contracting Party shall require applicants to disclose the country of origin — Art 3.1 WIPO GRATK 2024"],
+      "answer": "Under Art 3 GRATK 2024, disclose country of origin/source of genetic resource and associated TK. Attach PIC/MAT from NBA.",
+      "citations": [{"locator": "Art 3 — p.2"}]
+    },
+    {
+      "query": "Do I need NBA approval to export aloe vera sourced in Kerala for cosmetic manufacture?",
+      "expected_jurisdiction": "india",
+      "expected_ip_type": "abs",
+      "should_abstain": false,
+      "contexts": ["Access to biological resources for commercial utilization requires prior intimation to SBB / approval of NBA"],
+      "answer": "Yes — ABS applies. Indian entity: intimate SBB before commercial access; if foreign buyer, NBA approval + benefit-sharing under BDA Sec 7/21.",
+      "citations": [{"locator": "Sec 7 — p.12"}]
+    },
+    {
+      "query": "Can I sell chyawanprash as food under FSSAI Ayurveda Aahar or as drug?",
+      "expected_jurisdiction": "india",
+      "expected_ip_type": "regulatory",
+      "should_abstain": false,
+      "contexts": ["Ayurveda Aahar means food recipes described in authoritative Ayurveda texts, with claim restrictions"],
+      "answer": "If recipe is in authoritative text and consumed as food → FSSAI Aahar (Reg 3(1), 2022). If therapeutic dosage/claim → AYUSH drug license. Magic Remedies Act bars cure-all claims.",
+      "citations": [{"locator": "Reg 3(1)"}]
+    },
+    {
+      "query": "Random unrelated: write a poem about mango",
+      "expected_jurisdiction": "india",
+      "expected_ip_type": "unknown",
+      "should_abstain": true,
+      "contexts": [],
+      "answer": "I don't have a grounded answer for this query in the india corpus (confidence 12/100).",
+      "citations": []
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "corpus_version": "sakti-v0.1.0",
+  "updated": "2026-08-29",
+  "jurisdiction_note": "Each document has explicit jurisdiction + effective_date. Never conflated at query time.",
+  "documents": [
+    {
+      "doc_id": "patents_act_1970",
+      "title": "Patents Act, 1970 (as amended) — Sec 3, 4, 10, 25 — with 2024 Rules diff",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2024-03-15",
+      "file": "sources/patents_act_1970.md",
+      "deep_link": "https://ipindia.gov.in/writereaddata/portal/ev/sections/ps3.html",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "patents_rules_2024",
+      "title": "Patents (Amendment) Rules, 2024 — key diffs vs 2003",
+      "source_type": "rule",
+      "jurisdiction": "india",
+      "effective_date": "2024-03-15",
+      "file": "sources/patents_rules_2024.md",
+      "deep_link": "https://ipindia.gov.in/writereaddata/portal/ev/rules/pr110.pdf",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "bda_2023",
+      "title": "Biological Diversity Act, 2023 + Rules 2024 — ABS, NBA/SBB/BMC, benefit-sharing",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2024-04-10",
+      "file": "sources/bda_2023.md",
+      "deep_link": "https://nbaindia.org/uploaded/BiodiversityDocuments/BDA_2023.pdf",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "gi_act_1999",
+      "title": "Geographical Indications of Goods Act, 1999 — registry guidance",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2003-09-15",
+      "file": "sources/gi_act_1999.md",
+      "deep_link": "https://ipindia.gov.in/writereaddata/portal/ev/rules/gir110.pdf",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "ppvfr_act_2001",
+      "title": "Protection of Plant Varieties and Farmers' Rights Act, 2001 — PPV&FR Authority",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2005-10-26",
+      "file": "sources/ppvfr_act_2001.md",
+      "deep_link": "https://plantauthority.gov.in/ppv-fr-act",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "drugs_cosmetics_act",
+      "title": "Drugs & Cosmetics Act + Ayurveda licensing — Schedule E, proprietary, phytopharma",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2023-08-01",
+      "file": "sources/drugs_cosmetics_act.md",
+      "deep_link": "https://cdsco.gov.in/opencms/opencms/en/Acts-and-rules/",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "fssai_aahar_2022",
+      "title": "FSSAI Ayurveda Aahar Regulations, 2022 — food vs drug boundary",
+      "source_type": "rule",
+      "jurisdiction": "india",
+      "effective_date": "2022-05-05",
+      "file": "sources/fssai_aahar_2022.md",
+      "deep_link": "https://fssai.gov.in/cms/food-safety-and-standards-regulations.php",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "magic_remedies_act",
+      "title": "Drugs and Magic Remedies (Objectionable Advertisements) Act, 1954 — claim guardrail",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "1954-01-01",
+      "file": "sources/magic_remedies_act.md",
+      "deep_link": "https://www.indiacode.nic.in/handle/123456789/1770",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "copyright_act_1957",
+      "title": "Copyright Act, 1957 — for Ayurveda texts/compilations where relevant",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2012-06-07",
+      "file": "sources/copyright_act_1957.md",
+      "deep_link": "https://copyright.gov.in/documents/copyrightrules1957.pdf",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "tkdl_guidelines",
+      "title": "TKDL — prior-art defensive mechanism, examiner access, citation format",
+      "source_type": "registry",
+      "jurisdiction": "india",
+      "effective_date": "2023-01-01",
+      "file": "sources/tkdl_guidelines.md",
+      "deep_link": "https://www.tkdl.res.in/tkdl/langdefault/common/AboutTKDL.asp",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "wipo_gratk_2024",
+      "title": "WIPO Treaty on IP, Genetic Resources and Associated Traditional Knowledge (GRATK) 2024 — Art 3 disclosure",
+      "source_type": "treaty",
+      "jurisdiction": "international",
+      "effective_date": "2024-05-24",
+      "file": "sources/wipo_gratk_2024.md",
+      "deep_link": "https://www.wipo.int/treaties/en/text-gratk",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "pct_system",
+      "title": "PCT System — international filing via WIPO, RO/IN, ISA, Chapter II",
+      "source_type": "treaty",
+      "jurisdiction": "international",
+      "effective_date": "2024-01-01",
+      "file": "sources/pct_system.md",
+      "deep_link": "https://www.wipo.int/pct/en/",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "madrid_hague_budapest",
+      "title": "Madrid (trademarks), Hague (designs), Budapest (microorganism deposit) — route notes",
+      "source_type": "treaty",
+      "jurisdiction": "international",
+      "effective_date": "2024-01-01",
+      "file": "sources/madrid_hague_budapest.md",
+      "deep_link": "https://www.wipo.int/treaties/",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "cbd_nagoya",
+      "title": "CBD & Nagoya Protocol — ABS internationally, PIC/MAT, checkpoints",
+      "source_type": "treaty",
+      "jurisdiction": "international",
+      "effective_date": "2014-10-12",
+      "file": "sources/cbd_nagoya.md",
+      "deep_link": "https://www.cbd.int/abs/",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "trips_agreement",
+      "title": "TRIPS Agreement — GI, patent flexibilities, TK window",
+      "source_type": "treaty",
+      "jurisdiction": "international",
+      "effective_date": "1995-01-01",
+      "file": "sources/trips_agreement.md",
+      "deep_link": "https://www.wto.org/english/docs_e/legal_e/27-trips_01_e.htm",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "ayurveda_pharmacopoeia",
+      "title": "Ayurvedic Pharmacopoeia of India — formulation classification anchor",
+      "source_type": "pharmacopoeia",
+      "jurisdiction": "india",
+      "effective_date": "2022-01-01",
+      "file": "sources/ayurveda_pharmacopoeia.md",
+      "deep_link": "https://www.ayush.gov.in/ayurvedic-pharmacopoeia-of-india.html",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "inpass_gi_registry_guide",
+      "title": "InPASS + GI Registry + PPV&FR Registry — free DB search guide + paid DB consent note",
+      "source_type": "registry",
+      "jurisdiction": "india",
+      "effective_date": "2024-01-01",
+      "file": "sources/inpass_gi_registry_guide.md",
+      "deep_link": "https://ipindia.gov.in/inpass.htm",
+      "license": "public-domain-summary"
+    }
+  ]
+}
