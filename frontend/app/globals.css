@@ -1,16 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  /* Emil — strong custom easings, never vanilla ease */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 * { font-variant-ligatures: common-ligatures; }
+html { scrollbar-gutter: stable; }
 body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, sans-serif; }
 
-/* editorial serif for headings */
+/* Villager — minimum 16px base, 18px on answer, never light gray on white below 4.5:1 */
 .h-display { font-family: Fraunces, serif; letter-spacing: -0.02em; }
 
-/* citation highlight */
+/* --- Emil: only transform + opacity, under 300ms, hardware accelerated --- */
+.pressable {
+  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  will-change: transform;
+}
+.pressable:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .pressable:hover { transform: translateY(-1px); }
+}
+
+/* Stagger — 48ms between cards, decorative not blocking */
+@keyframes villaIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.stagger-in {
+  animation: villaIn 320ms var(--ease-out) both;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stagger-in { animation: none; opacity: 1; transform: none; }
+  .pressable, .drawer, .popover { transition-duration: 0ms !important; }
+}
+
+/* Drawer — Emil: translateY(100%) percentage, not px, + spring feel */
+.drawer {
+  transform: translateY(100%);
+  transition: transform 420ms var(--ease-drawer);
+  will-change: transform;
+}
+.drawer[data-open="true"] { transform: translateY(0); }
+
+/* Popover — origin-aware, never center */
+.popover {
+  transform-origin: var(--radix-popover-content-transform-origin, top);
+  transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out);
+}
+.popover[data-starting-style], .popover[data-ending-style] {
+  opacity: 0; transform: scale(0.97);
+}
+
+/* Blur bridge for state swaps */
+.blur-swap { transition: filter 180ms var(--ease-out), opacity 180ms var(--ease-out); }
+.blur-swap.swapping { filter: blur(4px); opacity: 0.75; }
+
+/* Clip reveal for images/cards */
+.reveal { clip-path: inset(0 0 100% 0); transition: clip-path 500ms var(--ease-out); }
+.reveal[data-in-view="true"] { clip-path: inset(0 0 0 0); }
+
+/* Confidence track — transform scaleX not width */
+.confidence-track { @apply h-2 rounded-full bg-stone-100 overflow-hidden; }
+.confidence-fill { height: 100%; transform-origin: left; transition: transform 700ms var(--ease-out); will-change: transform; }
+
+/* Villager touch targets: min 48px */
+.touch-48 { min-height: 48px; min-width: 48px; }
+
+/* Focus visible — always */
+:focus-visible { outline: 2px solid #0B2239; outline-offset: 2px; }
+
+/* Citation highlight */
 .cite-mark { @apply bg-amber-100 text-amber-900 px-1 py-0.5 rounded text-xs font-medium; }
-.confidence-track { @apply h-1.5 rounded-full bg-stone-100 overflow-hidden; }

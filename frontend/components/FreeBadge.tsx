@@ -1,19 +1,19 @@
 "use client";
 export function FreeBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500 text-white">
-      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-      100% FREE — no API keys · offline ready
+    <span className="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-full bg-emerald-500 text-white shadow-sm">
+      <span className="w-2 h-2 rounded-full bg-white animate-pulse" aria-hidden />
+      ₹0 — bina key, offline
     </span>
   );
 }
 export function OfflineReadyBanner() {
   return (
-    <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-start gap-3">
-      <span className="text-lg">✓</span>
-      <div className="text-xs leading-relaxed">
-        <div className="font-bold text-emerald-900">Zero-cost, zero-keys demo — runs on your laptop</div>
-        <div className="text-emerald-800">Local MiniLM embeddings + offline extractive RAG + pgvector. No OpenAI, no Cohere, no billing. Works on airplane mode. Switch to Ollama/HF free tier anytime — see <code className="bg-white px-1 rounded">.env.example</code>.</div>
+    <div className="stagger-in rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-4 flex gap-3" style={{ animationDelay: "0ms" } as React.CSSProperties}>
+      <span className="w-9 h-9 rounded-xl bg-emerald-600 text-white grid place-items-center text-sm shrink-0">✓</span>
+      <div className="text-sm leading-relaxed">
+        <div className="font-extrabold text-emerald-900">Bina internet, bina paise — laptop pe chalega</div>
+        <div className="text-emerald-800">MiniLM (80MB) + offline jawaab + pgvector. No `OpenAI` key. Network gaya bhi to jawab + saboot dikhega.</div>
       </div>
     </div>
   );

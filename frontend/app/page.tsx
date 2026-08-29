@@ -5,33 +5,31 @@ import { ConfidenceBadge, ConfidenceBar } from "@/components/ConfidenceBadge";
 import { CitationPane } from "@/components/CitationPane";
 import { FormulationFlow, PostureTable } from "@/components/FormulationFlow";
 import { EscalateButton } from "@/components/EscalateButton";
+import { VoiceButton } from "@/components/VoiceButton";
 import { FreeBadge, OfflineReadyBanner } from "@/components/FreeBadge";
-import { GlossaryBar } from "@/components/GlossaryTooltip";
-import { ExportButton } from "@/components/ExportButton";
-import { HowItWorks, ComparisonTable } from "@/components/HowItWorks";
 import { SplitViewTrigger } from "@/components/SplitView";
 import { chat, getCorpusVersion, type ChatResponse, type Jurisdiction } from "@/lib/api";
 
+// Villager examples — short, plain, Hindi-leaning labels, tap does all
 const EXAMPLES = [
-  { label: "Can I patent old churna?", jurisdiction: "india" as Jurisdiction, q: "Is classical Ashwagandha churna as per Charaka Samhita patentable in India?" },
-  { label: "My new extract", jurisdiction: "india" as Jurisdiction, q: "I made a novel Ashwagandha extract with 10x withanolide by new process — patentable?" },
-  { label: "Go international — GRATK", jurisdiction: "international" as Jurisdiction, q: "WIPO GRATK disclosure requirement for PCT filing with Indian genetic resource" },
-  { label: "Need permission for aloe?", jurisdiction: "india" as Jurisdiction, q: "Do I need NBA approval to source aloe vera from Kerala for cosmetic export?" },
+  { label: "Purana churna patent?", icon: "📜", jurisdiction: "india" as Jurisdiction, q: "Is classical Ashwagandha churna as per Charaka Samhita patentable in India?" },
+  { label: "Naya extract banaaya", icon: "🧪", jurisdiction: "india" as Jurisdiction, q: "I made a novel Ashwagandha extract with 10x withanolide by new process — patentable?" },
+  { label: "Videsh me patent?", icon: "🌐", jurisdiction: "international" as Jurisdiction, q: "WIPO GRATK disclosure requirement for PCT filing with Indian genetic resource" },
+  { label: "Aloe ke liye permission?", icon: "🌱", jurisdiction: "india" as Jurisdiction, q: "Do I need NBA approval to source aloe vera from Kerala for cosmetic export?" },
 ];
 
 export default function Page() {
   const [jurisdiction, setJurisdiction] = useState<Jurisdiction>("india");
   const [query, setQuery] = useState("");
-  const [lang, setLang] = useState("en");
-  const [eli5, setEli5] = useState(true); // win: on by default — easy to understand
+  const [lang, setLang] = useState("hi"); // villager default = Hindi
+  const [eli5, setEli5] = useState(true);
   const [loading, setLoading] = useState(false);
   const [res, setRes] = useState<ChatResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [corpus, setCorpus] = useState<{ corpus_version: string; document_count: number } | null>(null);
   const [sessionId] = useState(() => `sess_${Math.random().toString(36).slice(2, 10)}`);
-  const [showTriage, setShowTriage] = useState(false);
+  const [showTriage, setShowTriage] = useState(true); // villager: show triage upfront, not hidden
   const [formulation, setFormulation] = useState<any>(null);
-  const [showWhyWin, setShowWhyWin] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => { getCorpusVersion().then(setCorpus).catch(() => {}); }, []);
@@ -43,182 +41,191 @@ export default function Page() {
     try {
       const r = await chat(text, jurisdiction, lang, form ?? formulation ?? undefined, sessionId, eli5);
       setRes(r);
-      setTimeout(() => scroller.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      setTimeout(() => scroller.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 180);
     } catch (e: any) { setError(e.message || "request failed"); }
     finally { setLoading(false); }
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 backdrop-blur bg-white/80 border-b border-stone-200">
-        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 py-3 flex items-center gap-3 sm:gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-ink text-white grid place-items-center font-bold text-sm">IP</div>
-            <div>
-              <div className="h-display text-[17px] font-extrabold leading-none">IP-SAKTI</div>
-              <div className="text-[11px] tracking-widest font-semibold text-stone-500 -mt-0.5">SAHAYAK · SIH26045</div>
-            </div>
-            <span className="hidden md:inline-flex ml-2 text-[11px] font-mono px-2 py-1 rounded-full bg-stone-100 border border-stone-200">{corpus ? `corpus ${corpus.corpus_version} · ${corpus.document_count} docs` : "corpus loading…"}</span>
-            <span className="hidden lg:inline-flex"><FreeBadge /></span>
+    <div className="min-h-screen bg-[#FFFBF5]">
+      {/* --- Header: villager trust — big, high contrast, no small gray --- */}
+      <header className="sticky top-0 z-30 bg-white border-b-2 border-stone-200">
+        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 py-3 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-ink text-white grid place-items-center font-extrabold text-sm">IP</div>
+          <div>
+            <div className="h-display text-lg font-extrabold leading-none">IP-SAKTI Sahayak</div>
+            <div className="text-xs font-bold tracking-widest text-stone-600">Ayurveda ka kanoon dost · SIH26045</div>
           </div>
-          <div className="ml-auto hidden lg:flex items-center gap-2 text-xs text-stone-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Deployable · Audited · DPDP-aligned · <span className="font-bold text-emerald-700">FREE</span>
-          </div>
-          <a href="http://localhost:8000/docs" target="_blank" className="hidden sm:inline-flex text-xs font-semibold px-3 py-2 rounded-full bg-white border border-stone-300 hover:bg-stone-50">API docs ↗</a>
+          <span className="hidden md:inline-flex ml-3"><FreeBadge /></span>
+          <span className="hidden sm:inline-flex ml-auto text-xs font-mono px-2 py-1 rounded-full bg-stone-100 border border-stone-200">{corpus ? `corpus ${corpus.corpus_version}` : "…"}</span>
         </div>
+        {/* Emil: jurisdiction toggle — spring-like, transform only */}
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6 pb-3 flex flex-wrap items-center gap-3">
           <JurisdictionToggle value={jurisdiction} onChange={setJurisdiction} />
-          <div className="flex items-center gap-2 ml-auto flex-wrap">
-            <label className="text-xs font-medium text-stone-600 flex items-center gap-1.5">
-              <input type="checkbox" checked={eli5} onChange={(e) => setEli5(e.target.checked)} className="rounded" /> ELI5 (simple words)
-            </label>
-            <select value={lang} onChange={(e) => setLang(e.target.value)} className="text-sm rounded-full border border-stone-300 bg-white px-3 py-1.5">
-              <option value="en">English</option><option value="hi">हिन्दी</option><option value="ta">தமிழ்</option><option value="kn">ಕನ್ನಡ</option><option value="te">తెలుగు</option><option value="mr">मराठी</option>
-            </select>
-            <button onClick={() => setShowTriage((v) => !v)} className="text-xs font-semibold px-3 py-2 rounded-full bg-amber-500 text-white hover:bg-amber-600">3Q Triage {showTriage ? "−" : "+"}</button>
-            <button onClick={() => setShowWhyWin((v) => !v)} className="text-xs font-semibold px-3 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700">{showWhyWin ? "Hide" : "Why we win →"}</button>
+          <div className="ml-auto flex items-center gap-2">
+            {/* Villager lang: 3 big pills, not dropdown */}
+            {[
+              { id: "hi", label: "हिन्दी", sub: "Hindi" },
+              { id: "en", label: "English", sub: "En" },
+              { id: "ta", label: "தமிழ்", sub: "Tamil" },
+            ].map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setLang(l.id)}
+                className={`pressable touch-48 px-4 py-2 rounded-full border-2 text-sm font-bold ${lang === l.id ? "bg-ink text-white border-ink" : "bg-white border-stone-300 text-stone-700"}`}
+                aria-pressed={lang === l.id}
+              >
+                {l.label} <span className="text-xs font-normal opacity-70 hidden sm:inline">·{l.sub}</span>
+              </button>
+            ))}
           </div>
         </div>
-        <div className="h-1 w-full flex">
-          <div className={`flex-1 transition-all ${jurisdiction === "india" ? "bg-saffron" : "bg-stone-200"}`} />
-          <div className={`flex-1 transition-all ${jurisdiction === "international" ? "bg-indiaBlue" : "bg-stone-200"}`} />
+        <div className="h-1.5 w-full flex">
+          <div className={`flex-1 ${jurisdiction === "india" ? "bg-saffron" : "bg-stone-200"}`} style={{ transition: "background-color 180ms var(--ease-out)" }} />
+          <div className={`flex-1 ${jurisdiction === "international" ? "bg-indiaBlue" : "bg-stone-200"}`} style={{ transition: "background-color 180ms var(--ease-out)" }} />
         </div>
       </header>
 
-      {/* Win banner — collapsible */}
-      {showWhyWin && (
-        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 py-4 space-y-4">
-          <OfflineReadyBanner />
-          <ComparisonTable />
-        </div>
-      )}
-
-      <main className="mx-auto max-w-[1280px] px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6">
-        {/* Left */}
+      <main className="mx-auto max-w-[1280px] px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-5">
+        {/* LEFT: villager wizard — voice first, then triage, then answer */}
         <div className="space-y-4">
-          <div className="rounded-2xl bg-white border border-stone-200 shadow-card p-5">
-            <h1 className="h-display text-2xl sm:text-[30px] font-extrabold leading-tight">Ask in plain words — get the <span className={jurisdiction === "india" ? "text-saffron-dark" : "text-indiaBlue"}>{jurisdiction === "india" ? "India" : "International"}</span> law, <span className="underline decoration-amber-300 decoration-4 underline-offset-2">with proof</span>.</h1>
-            <p className="text-sm text-stone-600 mt-2 leading-relaxed">No jargon surprise. Every line cites the exact Act/Rule/Treaty + link. Not sure? We say “I don’t know” and connect you to a human. Works in 6 languages, even offline.</p>
-            <div className="mt-3"><GlossaryBar /></div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {EXAMPLES.map((ex) => (
-                <button key={ex.label} onClick={() => { setQuery(ex.q); setJurisdiction(ex.jurisdiction); onSend(ex.q); }} className={`text-xs font-medium px-3 py-1.5 rounded-full border ${jurisdiction === ex.jurisdiction ? "bg-ink text-white border-ink" : "bg-white text-stone-700 border-stone-300 hover:bg-stone-50"}`}>
-                  {ex.label} · {ex.jurisdiction === "india" ? "🇮🇳" : "🌐"} →
-                </button>
-              ))}
+          {/* Hero — one line, 22px, Hindi default */}
+          <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-5 stagger-in">
+            <h1 className="h-display text-[22px] sm:text-[26px] font-extrabold leading-tight">
+              {lang === "hi" ? <>Aapka sawaal, <span className={jurisdiction === "india" ? "text-saffron" : "text-indiaBlue"}>sarkari saboot</span> ke saath</> : <>Your question, with <span className={jurisdiction === "india" ? "text-saffron" : "text-indiaBlue"}>govt proof</span></>}
+            </h1>
+            <p className="text-[15px] leading-relaxed text-stone-700 mt-2">{lang === "hi" ? "Bolo ya likho — har jawab ka kanoon + link. Kam bharosa ho to hum khud rok dete hain, human ko bhejte hain." : "Speak or type — every line has Act + link. Low trust → we stop and send to human."}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold">
+              <span className="px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800">✓ No vakil fees</span>
+              <span className="px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-sky-800">✓ ₹0 offline</span>
+              <span className="px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800">✓ 6 bhasha</span>
             </div>
           </div>
 
-          <HowItWorks />
+          {/* Emil: stagger examples — 48ms each, not all at once */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {EXAMPLES.map((ex, i) => (
+              <button
+                key={ex.label}
+                onClick={() => { setQuery(ex.q); setJurisdiction(ex.jurisdiction); onSend(ex.q); }}
+                className="pressable touch-48 stagger-in text-left rounded-2xl border-2 border-stone-200 bg-white p-4 flex gap-3 items-center hover:border-stone-300"
+                style={{ animationDelay: `${i * 48}ms` } as React.CSSProperties}
+              >
+                <span className="w-11 h-11 rounded-xl bg-stone-50 border border-stone-200 grid place-items-center text-xl shrink-0" aria-hidden>{ex.icon}</span>
+                <span>
+                  <span className="block text-sm font-bold leading-tight">{ex.label}</span>
+                  <span className="block text-xs text-stone-500 mt-0.5">{ex.jurisdiction === "india" ? "🇮🇳 Bharat" : "🌐 World"} · tap karo →</span>
+                </span>
+              </button>
+            ))}
+          </div>
 
-          {showTriage && (
-            <FormulationFlow onComplete={(ans) => { setFormulation(ans); onSend(query || "Classify my formulation: classical vs proprietary vs phytopharma", ans); }} />
-          )}
-
-          <div className="rounded-2xl bg-white border border-stone-200 shadow-card p-4">
-            <div className="flex gap-3">
+          {/* Primary action: VOICE — 48px+ touch, scale 0.97 on press, no all-property transition */}
+          <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-5 stagger-in flex flex-col items-center gap-4" style={{ animationDelay: "160ms" } as React.CSSProperties}>
+            <VoiceButton lang={lang} onTranscript={(t) => { setQuery(t); onSend(t); }} />
+            <div className="text-xs font-bold text-stone-400 tracking-widest uppercase">— ya —</div>
+            <div className="w-full flex gap-3">
               <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onSend(); }}
-                placeholder={jurisdiction === "india" ? "e.g., Can I sell chawanprash as food or drug? · Try Tamil/Hindi too" : "e.g., What does GRATK Art 3 require for PCT with Indian TK?"}
-                rows={3}
-                className="flex-1 resize-none rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink"
+                placeholder={lang === "hi" ? "Yahan likho — jaise bolte ho waise..." : "Type here — like you speak..."}
+                rows={2}
+                className="flex-1 resize-none rounded-2xl border-2 border-stone-200 bg-stone-50 px-4 py-3 text-[16px] leading-relaxed placeholder:text-stone-400 focus:outline-none focus:border-ink focus:bg-white"
+                style={{ transition: "border-color 160ms var(--ease-out), background-color 160ms var(--ease-out)" }}
               />
             </div>
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
-              <button onClick={() => onSend()} disabled={loading || !query.trim()} className="px-5 py-2.5 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                {loading ? "Checking 4 sources…" : `Ask in ${jurisdiction.toUpperCase()} →`}
+            <div className="w-full flex gap-2">
+              <button onClick={() => onSend()} disabled={loading || !query.trim()} className="pressable touch-48 flex-1 py-4 rounded-2xl bg-ink text-white text-[16px] font-extrabold disabled:opacity-40 flex items-center justify-center gap-2">
+                {loading ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white" style={{ animation: "spin 0.7s linear infinite" }} aria-hidden /> <span>Jaanch rahe…</span></> : <><span>Bhejo →</span><span className="text-xs font-bold px-2 py-1 rounded-full bg-white/15">⌘+Enter</span></>}
               </button>
-              <span className="text-xs text-stone-500">⌘+Enter · Firewall keeps India/World separate</span>
-              {res?.free_tier && <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">FREE tier — ₹0</span>}
-              {res?.latency_ms && <span className="ml-auto text-xs font-mono text-stone-400">{res.latency_ms}ms</span>}
+              <label className="pressable touch-48 inline-flex items-center gap-2 px-3 rounded-2xl border-2 border-stone-200 bg-white text-xs font-bold">
+                <input type="checkbox" checked={eli5} onChange={(e) => setEli5(e.target.checked)} className="w-4 h-4" />
+                Simple
+              </label>
             </div>
-            {error && <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-800">{error} — is backend on http://localhost:8000 ? <code className="bg-white px-1 rounded">make up</code></div>}
+            {error && <div className="w-full rounded-xl bg-red-50 border-2 border-red-200 p-3 text-sm text-red-800">{error} — backend `make up`?</div>}
+            {res?.free_tier && <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">FREE — bina paise</span>}
           </div>
 
-          {/* Split view when firewall flags mixed query */}
+          {/* Triage — villager wizard default open, progressive */}
+          {showTriage && (
+            <FormulationFlow
+              onComplete={(ans) => { setFormulation(ans); onSend(query || "Classify my formulation", ans); }}
+            />
+          )}
+          <button onClick={() => setShowTriage((v) => !v)} className="pressable text-xs font-bold px-3 py-2 rounded-full bg-white border-2 border-stone-200 mx-auto block">
+            {showTriage ? "3Q band karo −" : "3Q triage kholo + (3 tap me faisla)"}
+          </button>
+
+          {/* Split view */}
           {res?.firewall?.mixed_query && <SplitViewTrigger query={query} lang={lang} />}
 
+          {/* Answer — villager: 18px body, icon posture, never light gray */}
           {res && (
-            <div className="rounded-2xl border-2 bg-white shadow-card overflow-hidden" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" }}>
-              <div className={`px-4 py-2 flex items-center gap-3 text-xs font-semibold tracking-widest uppercase ${jurisdiction === "india" ? "bg-saffron-light text-amber-900" : "bg-indiaBlue text-sky-100"}`}>
-                <span>{res.jurisdiction.toUpperCase()} ANSWER {res.free_tier ? "· FREE" : ""}</span>
-                <span className="ml-auto flex items-center gap-2"><ConfidenceBadge score={res.confidence.score} abstain={res.confidence.abstain} /></span>
+            <div className="rounded-[20px] border-2 bg-white shadow-card overflow-hidden stagger-in" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" }}>
+              <div className={`px-4 py-3 flex items-center gap-3 ${jurisdiction === "india" ? "bg-saffron text-white" : "bg-indiaBlue text-white"}`}>
+                <span className="text-sm font-extrabold tracking-tight">{res.jurisdiction === "india" ? "🇮🇳 Bharat ka jawab" : "🌐 World ka jawab"}</span>
+                <span className="ml-auto"><ConfidenceBadge score={res.confidence.score} abstain={res.confidence.abstain} /></span>
               </div>
               <div className="p-5">
                 {res.firewall && res.firewall.status !== "clean" && (
-                  <div className="mb-3 rounded-xl bg-sky-50 border border-sky-200 p-3 text-xs text-sky-800">🛡️ Jurisdiction firewall: {res.firewall.message}</div>
+                  <div className="mb-3 rounded-xl bg-sky-50 border-2 border-sky-200 p-3 text-sm font-medium text-sky-800">🛡️ {res.firewall.message}</div>
                 )}
-                <div className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed text-[15px]">{res.answer}</div>
+                <div className="text-[17px] leading-7 whitespace-pre-wrap text-ink">{res.answer}</div>
                 {res.answer_simple && (
-                  <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-4">
-                    <div className="text-xs font-bold tracking-widest uppercase text-amber-800">In simple words (ELI5) — for anyone to understand</div>
-                    <div className="text-sm leading-relaxed mt-1 whitespace-pre-wrap">{res.answer_simple}</div>
+                  <div className="mt-4 rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 stagger-in" style={{ animationDelay: "80ms" } as React.CSSProperties}>
+                    <div className="text-xs font-extrabold tracking-widest uppercase text-amber-800 flex items-center gap-2">🧒 Simple me — koi bhi samjhe</div>
+                    <div className="text-[15px] leading-7 mt-2 whitespace-pre-wrap">{res.answer_simple}</div>
                   </div>
                 )}
                 <div className="mt-4"><ConfidenceBar score={res.confidence.score} /></div>
-                <p className="mt-2 text-xs text-stone-500">{res.confidence.rationale}</p>
+                <p className="mt-2 text-sm text-stone-700 leading-relaxed">{res.confidence.rationale}</p>
                 {res.formulation_result && <div className="mt-4"><PostureTable table={res.formulation_result.posture_table} nextSteps={res.formulation_result.next_steps} category={res.formulation_result.category} /></div>}
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="font-mono px-2 py-1 rounded-full bg-stone-100 border border-stone-200">corpus {res.corpus_version}</span>
-                  <span className="text-stone-400">· {res.disclaimer}</span>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-mono">
+                  <span className="px-3 py-1.5 rounded-full bg-stone-900 text-white">corpus {res.corpus_version}</span>
+                  <span className="px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-stone-700">{res.disclaimer.slice(0, 44)}…</span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2"><ExportButton answer={res.answer + (res.answer_simple ? "\n\nELI5: " + res.answer_simple : "")} citations={res.citations} jurisdiction={res.jurisdiction} corpusVersion={res.corpus_version} /></div>
                 <div className="mt-4"><EscalateButton sessionId={sessionId} query={query} jurisdiction={jurisdiction} citations={res.citations} /></div>
-                {res.escalate_suggested && <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-2">Low confidence — we suggest escalating. Every query is audit-logged (DPDP) with full trace for the facilitator.</p>}
+                {res.escalate_suggested && <p className="mt-3 text-sm font-medium bg-amber-50 border-2 border-amber-200 rounded-xl p-3">⚠️ Bharosa kam — human ko bhejna behtar. Sab trace DPDP me safe.</p>}
               </div>
             </div>
           )}
 
           {!res && !loading && (
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-sm text-stone-600">
-              <div className="font-bold text-ink text-base">Why this wins over ChatGPT / ip-sakti.vercel.app</div>
-              <div className="mt-2 grid sm:grid-cols-2 gap-2 text-xs">
+            <div className="rounded-2xl border-2 border-dashed border-stone-300 bg-white p-5 stagger-in">
+              <div className="w-10 h-10 rounded-xl bg-ink text-white grid place-items-center font-bold">i</div>
+              <div className="text-sm font-bold mt-2">ChatGPT se alag kya?</div>
+              <div className="mt-2 grid gap-2 text-sm">
                 {[
-                  ["🛡️ Jurisdiction firewall", "India vs World never mixed — hard toggle + filter."],
-                  ["🧪 3-tap classification", "Classical / proprietary / phytopharma in one go."],
-                  ["📜 Every line has proof", "Act/Rule/Treaty + link + hash. No fake Sec numbers."],
-                  ["₹0 to run", "No OpenAI/Cohere key. Offline MiniLM + extractive = ₹0."],
-                  ["🧒 Anyone understands", "ELI5 + glossary hover + 6 languages."],
-                  ["📦 One-click report", "Export .md / Print for PPT submission."],
-                ].map(([t, d]) => (
-                  <div key={t} className="rounded-xl bg-stone-50 border border-stone-200 p-3"><div className="font-bold text-ink">{t}</div><div className="text-stone-600 leading-relaxed">{d}</div></div>
+                  ["🛡️ Bharat vs World alag", "Mix nahi karte — rang alag."],
+                  ["📜 Har line ka kaagaz", "Jhootha Sec number nahi."],
+                  ["₹0", "Bina key, offline chalega."],
+                ].map(([t,d])=>(
+                  <div key={t} className="flex gap-3 p-3 rounded-xl bg-stone-50 border border-stone-200"><span className="font-bold">{t}</span><span className="text-stone-600 ml-auto text-right">{d}</span></div>
                 ))}
               </div>
             </div>
           )}
         </div>
 
+        {/* RIGHT: citations + pipeline — villager: big verify, not tiny mono */}
         <div className="space-y-4" ref={scroller}>
-          <div className="rounded-2xl bg-white border border-stone-200 shadow-card p-4">
+          <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-4">
             <CitationPane citations={res?.citations ?? []} corpusVersion={res?.corpus_version ?? corpus?.corpus_version} />
           </div>
-          <div className="rounded-2xl border border-stone-200 bg-stone-900 text-stone-100 p-4">
-            <div className="text-xs font-semibold tracking-widest uppercase text-stone-400">How it works — free & robust</div>
-            <div className="mt-3 space-y-2 font-mono text-xs leading-relaxed">
-              <div>query → Bhashini ASR (free) → classifier → 3Q triage → 4× retriever ⟶ local MiniLM (₹0) → CrossEncoder rerank (₹0) → firewall → offline-extractive (₹0) → Bhashini TTS (free)</div>
-              <div className="text-stone-400">loader → chunker 800/120 § → local embed batched → pgvector upsert (idempotent)</div>
-              <div className="flex flex-wrap gap-2 pt-2">
-                <span className="px-2 py-1 rounded bg-emerald-600 font-bold">100% FREE DEFAULT</span><span className="px-2 py-1 rounded bg-white/10">pgvector · Neo4j · RAGAS</span><span className="px-2 py-1 rounded bg-white/10">FastAPI + Next.js</span>
-              </div>
+          <div className="rounded-2xl bg-stone-900 text-stone-100 p-4">
+            <div className="text-xs font-extrabold tracking-widest uppercase text-stone-400">Free pipeline — ₹0</div>
+            <div className="mt-3 font-mono text-xs leading-relaxed space-y-1">
+              <div className="text-stone-100">bolo → classifier → 3Q → 4× retriever (MiniLM) → rerank → firewall → offline jawaab</div>
+              <div className="text-stone-400">loader → chunker 800/120 § → pgvector</div>
             </div>
-          </div>
-          <div className="rounded-2xl bg-white border border-stone-200 p-4 text-xs leading-relaxed text-stone-600">
-            <div className="font-semibold text-ink">Demo script (2 min — remember this)</div>
-            <ol className="mt-2 space-y-1 list-decimal pl-5">
-              <li>Hit <b>Can I patent old churna? · 🇮🇳</b> → Sec 3(p) + TKDL, 92% confidence, firewall clean.</li>
-              <li>Toggle <b>🌐 International</b> → same q → GRATK Art 3, visibly separate.</li>
-              <li>Toggle <b>ELI5 on</b> → show simple words panel. Export report.</li>
-              <li>Open <b>3Q Triage</b> → posture table (IP/ABS/Regulatory) + next steps. Click escalate → ticket. Point to <b>corpus hash + free badge</b>.</li>
-            </ol>
-            <p className="mt-3 text-[11px] text-stone-400">Staged: MVP (today, offline) → Ollama/HF free upgrade (1 cmd) → full Bhashini voice. Theme 18 + Org 5 = lowest competition.</p>
           </div>
         </div>
       </main>
 
-      <footer className="mx-auto max-w-[1280px] px-6 py-6 text-center text-xs text-stone-400">
-        IP-SAKTI Sahayak · Information, not legal advice. Verify at source links. · DPDP 365-day audit · Paid DB only with consent · <span className="font-bold text-emerald-600">Zero-cost free tier wins</span> — no API billing to demo.
+      <footer className="mx-auto max-w-[1280px] px-6 py-6 text-center text-xs font-medium text-stone-500">
+        IP-SAKTI Sahayak · Information only — vakil nahi. Link check karke file karo. · DPDP 365 din · Paid DB bina permission band.
       </footer>
     </div>
   );
