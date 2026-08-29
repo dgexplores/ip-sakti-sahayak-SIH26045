@@ -16,6 +16,7 @@ export type FormulationCategory = "classical" | "proprietary" | "phytopharmaceut
 
 export type ChatResponse = {
   answer: string;
+  answer_simple?: string | null;
   jurisdiction: Jurisdiction;
   citations: Citation[];
   confidence: Confidence;
@@ -23,17 +24,26 @@ export type ChatResponse = {
   escalate_suggested: boolean;
   escalate_ticket_id?: string | null;
   formulation_result?: { category: FormulationCategory; posture_table: Record<string, string>; next_steps: string[]; citations: Citation[] } | null;
+  firewall?: { status: string; message: string; foreign_ratio: number; mixed_query: boolean } | null;
   disclaimer: string;
   latency_ms?: number;
+  free_tier?: boolean;
 };
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export async function chat(query: string, jurisdiction: Jurisdiction, language = "en", formulation?: any, sessionId?: string): Promise<ChatResponse> {
+export async function chat(
+  query: string,
+  jurisdiction: Jurisdiction,
+  language = "en",
+  formulation?: any,
+  sessionId?: string,
+  explainSimple = false
+): Promise<ChatResponse> {
   const res = await fetch(`${API}/api/v1/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, jurisdiction, language, formulation, session_id: sessionId }),
+    body: JSON.stringify({ query, jurisdiction, language, formulation, session_id: sessionId, explain_simple: explainSimple }),
   });
   if (!res.ok) throw new Error(`chat failed ${res.status}`);
   return res.json();

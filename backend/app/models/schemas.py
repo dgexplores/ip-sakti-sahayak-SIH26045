@@ -82,13 +82,13 @@ class ChatRequest(BaseModel):
     formulation: FormulationAnswer | None = None
     allow_paid_db: bool = False
     consent_id: str | None = None
-
-    # voice mode passthrough
+    explain_simple: bool = Field(default=False, description="ELI5 mode — plain language, win for non-lawyers")
     audio_base64: str | None = None
 
 
 class ChatResponse(BaseModel):
     answer: str
+    answer_simple: str | None = Field(default=None, description="ELI5 version when requested")
     jurisdiction: Jurisdiction
     citations: list[Citation]
     confidence: Confidence
@@ -96,10 +96,12 @@ class ChatResponse(BaseModel):
     escalate_suggested: bool = False
     escalate_ticket_id: str | None = None
     formulation_result: FormulationResult | None = None
+    firewall: dict | None = Field(default=None, description="jurisdiction firewall verdict")
     disclaimer: str = Field(
         default="Information only — not legal advice. Verify at source links before filing."
     )
     latency_ms: int | None = None
+    free_tier: bool = Field(default=True, description="true = zero-cost path used, no paid API billed")
 
 
 class ClassifyResponse(BaseModel):

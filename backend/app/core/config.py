@@ -24,14 +24,18 @@ class Settings(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: str = "sakti-graph-2026"
 
-    # llm
+    # llm — FREE-FIRST: local by default, zero cost, zero keys required for demo
+    # All paid providers are optional and only used if keys injected; demo runs 100% offline.
     openai_api_key: str = ""
     google_api_key: str = ""
     cohere_api_key: str = ""
-    embedding_provider: Literal["openai", "local"] = "openai"
-    embedding_model: str = "text-embedding-3-small"
-    embedding_dim: int = 1536
-    llm_model: str = "gpt-4o-mini"
+    hf_api_key: str = ""  # optional: HuggingFace Inference (free tier) fallback
+    embedding_provider: Literal["openai", "local"] = "local"
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"  # 80MB, free, MIT, 384-dim — runs on CPU
+    embedding_dim: int = 384  # auto-adjusted to model; 384 for MiniLM, 1536 for OpenAI
+    llm_provider: Literal["offline", "ollama", "hf", "openai"] = "offline"  # offline=extractive (free, no hallucination)
+    llm_model: str = "offline-extractive"  # or "llama3.1:8b" for ollama, "google/gemma-2-9b-it" for HF
+    ollama_url: str = "http://localhost:11434"
 
     # vector
     vector_store: Literal["pgvector", "qdrant"] = "pgvector"

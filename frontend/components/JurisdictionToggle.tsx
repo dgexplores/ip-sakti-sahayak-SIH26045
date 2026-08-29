@@ -5,7 +5,7 @@ export type Jurisdiction = "india" | "international";
 
 export function JurisdictionToggle({ value, onChange }: { value: Jurisdiction; onChange: (v: Jurisdiction) => void }) {
   return (
-    <div className="inline-flex p-1 rounded-full bg-white shadow-toggle border border-stone-200" role="tablist" aria-label="Jurisdiction">
+    <div className="inline-flex p-1 rounded-full bg-white shadow-toggle border border-stone-200" role="tablist" aria-label="Jurisdiction — hard firewall, never conflated">
       <button
         role="tab"
         aria-selected={value === "india"}

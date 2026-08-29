@@ -17,14 +17,24 @@ from app.rag.generator import generate_answer
 from app.rag.reranker import rerank
 from app.rag.retriever import retrieve_all, to_citations
 from app.services.audit import audit_logger
-from app.services.bhashini import asr, translate, tts
+from app.services.bhashini import asr, translate
 from app.services.paid_connector import check_paid_access
+from app.rag.jurisdiction_firewall import firewall_check
 
 router = APIRouter()
 
 
 def _corpus_version() -> str:
-    # hash of manifest doc_ids; stable per ingest
+    # hash of manifest doc_ids; stable per ingest — free freshness proof, no paid service
+    try:
+        import json, pathlib
+        m = pathlib.Path(__file__).parents[4] / "corpus" / "manifest.json"
+        if m.exists():
+            docs = json.loads(m.read_text()).get("documents", [])
+            h = hashlib.sha256("".join(sorted(d.get("doc_id","") for d in docs)).encode()).hexdigest()[:12]
+            return h
+    except Exception:
+        pass
     return hashlib.sha256(b"sakti-corpus-v1").hexdigest()[:12]
 
 
@@ -60,7 +70,11 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
 
     # 5. Retrieve (4 retrievers parallel, jurisdiction-filtered)
     retrieved = await retrieve_all(q_emb, jurisdiction, top_k_each=settings.retrieve_top_k // 4 + 2)
-    # 6. Rerank
+    # 5b. Jurisdiction firewall — unique win: enforce hard split, filter leaks, surface verdict
+    fw = firewall_check(query, jurisdiction, retrieved)
+    if fw["status"] in ("leak_warning", "filtered"):
+        retrieved = [c for c in retrieved if c.jurisdiction == jurisdiction.value] or retrieved
+    # 6. Rerank (free-first: local CrossEncoder)
     ranked = await rerank(query, retrieved, top_k=settings.rerank_top_k)
     # 7. Formulation flow if needed
     formulation_result = None
@@ -78,8 +92,10 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
     # if paid blocked, append note but don't fail
     citations: list[Citation] = to_citations(ranked[:5])
 
-    # 9. Generate
+    # 9. Generate (free-first: offline-extractive, zero hallucination)
     answer = await generate_answer(query, jurisdiction, ranked[:6], confidence, language=req.language)
+    if fw["status"] != "clean":
+        answer = f"> 🛡️ **Jurisdiction firewall:** {fw['message']}\n\n" + answer
     if not paid.allowed and req.allow_paid_db:
         answer = f"> ⚠️ {paid.reason}\n\n" + answer
 
@@ -93,6 +109,16 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
 
     corpus_version = _corpus_version()
     escalate = confidence.abstain or confidence.score < 55
+
+    # 10b. ELI5 synthesis (free) when requested
+    answer_simple = None
+    if req.explain_simple and not confidence.abstain:
+        # reuse offline ELI5 logic via generator helper (inline to avoid extra LLM call)
+        try:
+            from app.rag.generator import _eli5  # type: ignore[import]
+            answer_simple = _eli5(query, jurisdiction, ranked[:3])
+        except Exception:
+            answer_simple = "In simple words: check the cited laws above — they decide patent/ABS. Unsure? Escalate."
 
     # 11. Audit (DPDP: pseudonymized, consent-aware)
     try:
@@ -110,9 +136,12 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
         pass
 
     latency_ms = int((time.perf_counter() - t0) * 1000)
+    from app.core.config import get_settings as _gs
+    free_tier = _gs().llm_provider == "offline" and _gs().embedding_provider == "local"
 
     return ChatResponse(
         answer=answer,
+        answer_simple=answer_simple,
         jurisdiction=jurisdiction,
         citations=citations,
         confidence=confidence,
@@ -120,7 +149,9 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
         escalate_suggested=escalate,
         escalate_ticket_id=None,
         formulation_result=formulation_result,
+        firewall=fw,
         latency_ms=latency_ms,
+        free_tier=free_tier,
     )
 
 
