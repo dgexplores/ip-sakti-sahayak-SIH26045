@@ -1,13 +1,14 @@
-"""Chat API — typed, jurisdiction-hard, citation-grounded, audit-logged."""
+"""Chat API. Typed, jurisdiction-hard, citation-grounded, audit-logged."""
 from __future__ import annotations
 
-import hashlib
 import time
 import uuid
 
 from fastapi import APIRouter, Request
 
 from app.core.config import get_settings
+from app.core.corpus import corpus_version
+from app.core.logging import get_logger
 from app.models.schemas import ChatRequest, ChatResponse, Citation, Confidence, Jurisdiction
 from app.pipelines.ingest.embedder import get_embedder
 from app.rag.classifier import classify_query
@@ -22,20 +23,7 @@ from app.services.paid_connector import check_paid_access
 from app.rag.jurisdiction_firewall import firewall_check
 
 router = APIRouter()
-
-
-def _corpus_version() -> str:
-    # hash of manifest doc_ids; stable per ingest — free freshness proof, no paid service
-    try:
-        import json, pathlib
-        m = pathlib.Path(__file__).parents[4] / "corpus" / "manifest.json"
-        if m.exists():
-            docs = json.loads(m.read_text()).get("documents", [])
-            h = hashlib.sha256("".join(sorted(d.get("doc_id","") for d in docs)).encode()).hexdigest()[:12]
-            return h
-    except Exception:
-        pass
-    return hashlib.sha256(b"sakti-corpus-v1").hexdigest()[:12]
+logger = get_logger("chat")
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -51,8 +39,8 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
             transcript = await asr(req.audio_base64, language=req.language)
             if transcript:
                 query = transcript
-        except Exception:
-            pass  # keep original query
+        except Exception as e:
+            logger.warning("chat.asr_failed", session_id=session_id, error=str(e))
 
     # 2. Classify (jurisdiction toggle is hard — never overrides to other side)
     cls = classify_query(query, jurisdiction_hint=req.jurisdiction)
@@ -103,8 +91,8 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
             overlap = len(q_terms & top_terms) / max(1, len(q_terms))
             if overlap < 0.18:
                 is_out_of_scope = True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("chat.out_of_scope_check_failed", session_id=session_id, error=str(e))
     abstention_signal = has_mismatch or (not paid.allowed and "paid" in query.lower()) or is_out_of_scope
     confidence = compute_confidence(ranked, has_abstention_signal=abstention_signal)
     # if paid blocked, append note but don't fail
@@ -122,10 +110,10 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
     if req.language != "en" and not confidence.abstain:
         try:
             answer = await translate(answer, source_lang="en", target_lang=req.language)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("chat.translate_failed", session_id=session_id, error=str(e))
 
-    corpus_version = _corpus_version()
+    cv = corpus_version()
     escalate = confidence.abstain or confidence.score < 55
 
     # 10b. ELI5 synthesis (free) when requested
@@ -135,8 +123,9 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
         try:
             from app.rag.generator import _eli5  # type: ignore[import]
             answer_simple = _eli5(query, jurisdiction, ranked[:3])
-        except Exception:
-            answer_simple = "In simple words: check the cited laws above — they decide patent/ABS. Unsure? Escalate."
+        except Exception as e:
+            logger.warning("chat.eli5_failed", session_id=session_id, error=str(e))
+            answer_simple = "In simple words: check the cited laws above, they decide patent/ABS. Unsure? Escalate."
 
     # 11. Audit (DPDP: pseudonymized, consent-aware)
     try:
@@ -146,16 +135,15 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
             jurisdiction=jurisdiction,
             citation_ids=[c.id for c in citations],
             confidence=confidence.score,
-            corpus_version=corpus_version,
+            corpus_version=cv,
             consent_id=req.consent_id,
             paid_db_accessed=paid.allowed,
         )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("chat.audit_failed", session_id=session_id, error=str(e))
 
     latency_ms = int((time.perf_counter() - t0) * 1000)
-    from app.core.config import get_settings as _gs
-    free_tier = _gs().llm_provider == "offline" and _gs().embedding_provider == "local"
+    free_tier = settings.llm_provider == "offline" and settings.embedding_provider == "local"
 
     return ChatResponse(
         answer=answer,
@@ -163,7 +151,7 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
         jurisdiction=jurisdiction,
         citations=citations,
         confidence=confidence,
-        corpus_version=corpus_version,
+        corpus_version=cv,
         escalate_suggested=escalate,
         escalate_ticket_id=None,
         formulation_result=formulation_result,

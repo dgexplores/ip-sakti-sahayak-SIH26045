@@ -1,112 +1,122 @@
-# IP-SAKTI Sahayak — SIH26045
+# IP-SAKTI Sahayak (SIH26045)
 
-Multilingual, RAG-based, source-cited AI assistant for IP & regulatory guidance in Ayurveda.  
-**Jurisdiction-firewalled. Citation-grounded. 100% FREE to demo. Easy for anyone to understand.**
+A free assistant that answers Ayurveda IP and legal questions, with a real law quoted for every answer.
 
-> PS: SIH26045 · Ministry of Ayush (AIIA) · MedTech/HealthTech · Theme 18 · Python + AI/ML track.
+> PS: SIH26045, Ministry of Ayush (AIIA), MedTech/HealthTech, Theme 18, Python + AI/ML track.
 
-**Win strategy: Theme 18 (moderate) + Org Ayush 5 (rarest — only 5 PS in 229) = compete vs 3–5 teams, not 50. Free-stack + ELI5 + firewall is the moat generic teams can’t fake.**
-
----
-
-## Why this wins (judge’s checklist)
-
-| PS Must-Have | How we do it — uniquely & free | Proof |
-|---|---|---|
-| **Jurisdiction toggle — never conflated** | Hard `Jurisdiction` enum + **firewall** (`jurisdiction_firewall.py`) filters leaks, shows verdict banner, two colors (saffron `#FF9933` vs ink `#0B2239`) never mixed | `backend/app/rag/jurisdiction_firewall.py:1`, `frontend/components/JurisdictionToggle.tsx:1` |
-| **Formulation classification** | **3Q flow** → `classical/proprietary/phytopharma/new_drug/aahar/cosmetic` → posture table (IP/ABS/Regulatory) + next steps, one tap | `backend/app/rag/formulation.py:1`, `frontend/components/FormulationFlow.tsx:1` |
-| **ABS + TKDL pointer** | Dedicated retrievers, ABS helper, TKDL guideline chunk | `backend/app/rag/retriever.py:1` |
-| **Triple citation + confidence + “not legal advice”** | Every answer = verbatim span + `locator` + `deep_link` + `version_hash` + confidence 0–100 + abstain gate 0.70 + footer disclaimer. Offline-extractive = **zero hallucination** | `backend/app/models/schemas.py:20`, `backend/app/rag/generator.py:1` |
-| **Version-tracked corpus (2024 Rules, GRATK 2024)** | Git-tracked `corpus/sources/*.md` + `manifest.json` + hash in every answer | `corpus/manifest.json:1`, `GET /api/v1/corpus/version` |
-| **Bhashini + ELI5** | Bhashini ASR/TTS (free govt infra) + **ELI5 toggle** (simple words for any villager) + glossary hover where legal terms stay English | `backend/app/services/bhashini.py:1`, `frontend/components/GlossaryTooltip.tsx:1` |
-| **Agentic 4-retriever** | `retrieve_all` fan-out (statute, TKDL, registry, case_law) → **free CrossEncoder** rerank → firewall → offline-extractive | `backend/app/rag/reranker.py:1` |
-| **Paid DB consent + DPDP audit** | `PaidConnector` blocks paid DB without `consent_id`; `AuditLogger` pseudonymized, 365-day retention, ticket with full trace | `backend/app/services/audit.py:1` |
-| **100% FREE to demo** | Default = **local MiniLM (80MB, MIT, CPU)** + **offline-extractive (₹0)** + **pgvector (FOSS)** + lexical rerank. No OpenAI/Cohere key needed. Add `OPENAI_API_KEY` or run Ollama to upgrade — zero code change. | `backend/app/core/config.py:1` (`llm_provider=offline`, `embedding_provider=local`) |
-
-**Unique only we have:** firewall banner, ELI5 panel, one-click Export .md, glossary hover, free-tier badge (`FREE — ₹0`), offline-ready banner, comparison table.
+Ask something like "Can I patent my grandmother's churna recipe?" and it tells you the actual law (India or International, never mixed up), quotes the exact line, links to the government source, and says how sure it is. If it is not sure, it tells you to talk to a human instead of guessing.
 
 ---
 
-## Free-stack architecture (₹0 default)
+## What we have (working today)
+
+- **India vs International, kept separate.** A hard toggle plus a "firewall" check that stops the two from ever getting mixed into one answer.
+- **Every answer is quoted, not invented.** The default mode stitches together real quoted lines from the law library. It does not use an LLM to freely generate text, so it cannot hallucinate a fake section number.
+- **Confidence score with a stop button.** Every answer gets a 0 to 100 score. Below the threshold, it refuses to guess and tells you to escalate to a human IP facilitator instead.
+- **3-question triage.** Three taps (is it in an old text? did you change anything? what will you sell it as?) sort your formulation into a category and show what that means for patents, biodiversity permission, and food/drug rules.
+- **Simple-language mode (ELI5).** A plain-words version of the answer for someone who is not a lawyer, plus hover definitions on legal terms like `Sec 3(p)` or `TKDL`.
+- **Voice input.** Tap the mic and speak in Hindi, Tamil, or English using the browser's own speech recognition.
+- **Export and print.** Turn any answer into a Markdown report or print it, citations included.
+- **Runs for free.** No API key needed. It uses a small local AI model (MiniLM, runs on your own CPU) to search the law library, and a free local database (pgvector). You can optionally plug in a paid model later without changing any code.
+- **17 real law documents** are already loaded: the Patents Act, the 2024 Patent Rules, the Biological Diversity Act, FSSAI food rules, WIPO's GRATK treaty, and more, all in `corpus/sources/`.
+- **A version stamp on every answer.** Each answer shows a short hash of exactly which version of the law library produced it, so you can always tell if the source data has changed.
+
+## How it works (plain-language walkthrough)
 
 ```
-User (Hindi voice, free Bhashini) → ASR → Classifier → 3Q Triage (if needed)
-→ 4× Retriever (parallel, jurisdiction-filtered) → CrossEncoder rerank (free, local)
-→ Jurisdiction Firewall → Offline-extractive stitching (free, zero hallucination)
-→ Citation assembler + confidence → Bhashini TTS (free) → UI (toggle + pane + ELI5 + export) + Audit
+You type or speak a question
+        ↓
+The system reads your question and guesses what kind of IP question it is
+        ↓
+It searches the law library from 4 angles at once:
+  statutes, TKDL (traditional-knowledge registry), other registries, case law
+        ↓
+It re-ranks those results to find the best matching lines
+        ↓
+The firewall checks: does this mix India and International law? If yes, it warns you
+        ↓
+It builds an answer using ONLY the quoted lines it found (never makes anything up)
+        ↓
+It scores how confident it is. Too low? It tells you to talk to a human instead
+        ↓
+You see: the answer, a simple-language version, the exact quotes with links, and the confidence score
 ```
 
-**Ingest:** `loader` (pdf/md/json, sha256) → `chunker` (800/120, section-aware) → `LocalEmbedder` (MiniLM, batched) → `pgvector` upsert by `doc_id#chunk_id` (idempotent).
+Everything above runs on your own machine for free. If you later add a paid AI key (OpenAI) or run a free local model (Ollama), the system will use that instead to write more natural-sounding answers, but it will still only use the same quoted law as its source material.
 
-All **offline**, **free**, **observable** (`make ingest-dry`, `make eval`).
+## What's left (known gaps, being honest)
+
+- **Voice translation and text-to-speech are mocked.** The code to call the real government Bhashini service is written and works, but without a free Bhashini API key it shows placeholder text like `[Bhashini mock en->hi]` instead of a real translation. Get a key and set `BHASHINI_API_KEY` in `.env` to turn this on for real.
+- **The knowledge-graph view is a stub.** There's a page planned that shows how a formulation connects to a law to a registry as a visual graph (Neo4j). Right now it only returns made-up example data and isn't linked to any button in the app yet.
+- **Only 17 documents so far.** The law library can grow, more Acts, more state-level rules, more case law, but adding them is a manual step for now (see "Adding more law documents" below).
+- **The "paid database" consent flow is a placeholder.** It correctly blocks access and asks for consent, but there is no actual paid legal database wired up behind it yet, there's nothing to unlock.
+- **No real user accounts or login.** Every visit is a fresh, anonymous session. Fine for a demo, would need real auth for production use.
+- **Docker services that aren't used yet.** `make up` also starts a Redis cache and a Neo4j graph database. Neither is actually read from by the running app yet, they're there for the features above once those get built.
+
+None of these block the demo. The core promise, real quoted law with links and a working India/International split, works end to end today.
 
 ---
 
-## Quick start — zero keys, zero billing
+## Quick start (no accounts, no cost)
 
 ```bash
-cp .env.example .env   # already FREE defaults, no edits needed for demo
-make up                # docker: db+redis+qdrant+neo4j+backend+frontend
+cp .env.example .env   # already set to the free defaults, nothing to edit for a demo
+make up                # starts everything with Docker
+```
 
-# or without docker:
+Or without Docker:
+```bash
 pip install -e backend/
 uvicorn app.main:app --reload --port 8000 &
 cd frontend && npm install && npm run dev
 ```
 
-Open http://localhost:3000 (check `FREE — ₹0` badge), http://localhost:8000/docs, http://localhost:7474 (Neo4j).
+Then open:
+- http://localhost:3000 for the app
+- http://localhost:8000/docs for the API
+- http://localhost:7474 for the (currently unused) Neo4j graph browser
 
-### Ingest corpus
+### Adding more law documents
 ```bash
-make ingest-dry   # preview 17 docs → 27 chunks
-make ingest       # embed (local MiniLM) → pgvector
-make corpus-hash  # hash shown in every answer footer
+make ingest-dry   # preview what would be loaded, no changes made
+make ingest       # actually load and index the documents
+make corpus-hash  # print the version hash shown on every answer
 ```
 
-### Evaluate (RAGAS heuristic, free)
+### Checking answer quality
 ```bash
-make eval  # writes eval/report.json — faithfulness, citation precision, abstention
+make eval   # writes eval/report.json with faithfulness and citation-accuracy scores
 ```
 
-### Upgrade to free LLM (optional, still free)
+### Turning on a real AI model (optional, still free options available)
 ```bash
-# Option A: Ollama local (free, offline)
+# Option A: Ollama, runs a free model on your own machine
 ollama pull llama3.1:8b
-# .env: LLM_PROVIDER=ollama  LLM_MODEL=llama3.1:8b
+# in .env: LLM_PROVIDER=ollama  LLM_MODEL=llama3.1:8b
 
-# Option B: HuggingFace free tier
-# .env: LLM_PROVIDER=hf  HF_API_KEY=hf_...  LLM_MODEL=google/gemma-2-9b-it
+# Option B: Hugging Face free tier
+# in .env: LLM_PROVIDER=hf  HF_API_KEY=hf_...  LLM_MODEL=google/gemma-2-9b-it
 
-# Option C: OpenAI (only if you want to pay)
-# .env: LLM_PROVIDER=openai  OPENAI_API_KEY=sk-... 
+# Option C: OpenAI (paid, only if you want it)
+# in .env: LLM_PROVIDER=openai  OPENAI_API_KEY=sk-...
 ```
 
 ---
 
-## Easy to use — for anyone
+## Trying it yourself
 
-1. **Toggle** 🇮🇳 INDIA vs 🌐 INTERNATIONAL — colors never mix, firewall warns if leaked.
-2. **Tap an example** or type plain words (“Can I sell chawanprash as food?”) — no legal jargon needed.
-3. **3Q Triage** — 3 taps classify classical/proprietary/phytopharma → table tells IP/ABS/Regulatory.
-4. **Read answer** — highlights + ELI5 (toggle on) + glossary hover (e.g., `Sec 3(p)` → plain English).
-5. **Check proof** — right pane: statute span + “↗ Verify” link + hash. Export .md for PPT.
-
-**Judge demo (2 min):** Classical? (🇮🇳 Sec 3(p) + TKDL) → toggle 🌐 (GRATK Art 3) → ELI5 on → 3Q posture → Export → escalate ticket → point to `corpus hash` + `FREE` badge.
-
----
+1. Pick 🇮🇳 India or 🌐 International at the top. The two never get mixed.
+2. Tap an example question, or type your own in plain words, no legal terms needed.
+3. Try the 3-question triage: three taps tell you your formulation's category and what it means.
+4. Turn on "Simple" mode to get a plain-language version alongside the legal one.
+5. Check the right-hand panel: every claim links back to the real government source, with a version hash.
 
 ## API
 
-`POST /api/v1/chat` — `{query, jurisdiction, language, explain_simple, formulation, session_id}` → `{answer, answer_simple, jurisdiction, citations[], confidence, corpus_version, firewall, free_tier}`
+`POST /api/v1/chat` with `{query, jurisdiction, language, explain_simple, formulation, session_id}` returns `{answer, answer_simple, jurisdiction, citations[], confidence, corpus_version, firewall, free_tier}`.
 
-See `backend/app/models/schemas.py:44` for contracts.
+Full request and response shapes are in `backend/app/models/schemas.py`.
 
 ---
 
-## Roadmap (PS staged)
-
-- **W1–2 MVP (today):** 17 docs, offline RAG, firewall, ELI5, export — runs free, wins 70% judge score.
-- **W3 Graph+Agentic:** Neo4j `Formulation→Category→Act→Registry` + LangGraph.
-- **W4 Voice+Scale:** full Bhashini 10 langs + voice mode + facilitator tickets.
-
-License: MIT. Corpus public-domain per `corpus/manifest.json`.
+License: MIT. The law documents in `corpus/` are public-domain government text, see `corpus/manifest.json` for sources.

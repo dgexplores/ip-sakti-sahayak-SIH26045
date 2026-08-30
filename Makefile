@@ -40,13 +40,6 @@ eval:
 corpus-hash:
 	cd corpus && git log --oneline -1 -- sources/ 2>/dev/null || echo "no-git"; find sources -type f -exec sha256sum {} \; | sort | sha256sum | cut -c1-12
 
-# === DB ===
-migrate:
-	cd backend && alembic upgrade head
-
-migrate-new:
-	cd backend && alembic revision --autogenerate -m "$(msg)"
-
 # === Frontend ===
 frontend-install:
 	cd frontend && npm install

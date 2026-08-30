@@ -50,9 +50,11 @@ class AuditLogger:
             corpus_version=corpus_version,
             paid_db_accessed=paid_db_accessed,
         )
-        # best-effort DB write
+        # best-effort DB write, offloaded so it never blocks the event loop
         if get_settings().enable_audit:
-            try:
+            import anyio
+
+            def _write() -> None:
                 import psycopg  # type: ignore[import]
 
                 dsn = get_settings().database_url.replace("postgresql+psycopg://", "postgresql://")
@@ -82,13 +84,18 @@ class AuditLogger:
                                 event.created_at,
                             ),
                         )
+
+            try:
+                await anyio.to_thread.run_sync(_write)
             except Exception as e:
                 logger.warning("audit.db_write_failed", error=str(e))
         return event
 
     async def log_escalation(self, ticket_id: str, session_id: str, trace: dict) -> None:
         logger.info("audit.escalate", ticket_id=ticket_id, session_id=session_id, trace_keys=list(trace.keys()))
-        try:
+        import anyio
+
+        def _write() -> None:
             import psycopg  # type: ignore[import]
 
             dsn = get_settings().database_url.replace("postgresql+psycopg://", "postgresql://")
@@ -116,6 +123,9 @@ class AuditLogger:
                             datetime.now(timezone.utc),
                         ),
                     )
+
+        try:
+            await anyio.to_thread.run_sync(_write)
         except Exception as e:
             logger.warning("audit.escalation_db_failed", error=str(e))
 

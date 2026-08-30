@@ -5,10 +5,13 @@ import { ConfidenceBadge, ConfidenceBar } from "@/components/ConfidenceBadge";
 import { CitationPane } from "@/components/CitationPane";
 import { FormulationFlow, PostureTable } from "@/components/FormulationFlow";
 import { EscalateButton } from "@/components/EscalateButton";
+import { ExportButton } from "@/components/ExportButton";
 import { VoiceButton } from "@/components/VoiceButton";
-import { FreeBadge, OfflineReadyBanner } from "@/components/FreeBadge";
+import { FreeBadge } from "@/components/FreeBadge";
 import { SplitViewTrigger } from "@/components/SplitView";
-import { chat, getCorpusVersion, type ChatResponse, type Jurisdiction } from "@/lib/api";
+import { GlossaryText } from "@/components/GlossaryTooltip";
+import { HowItWorks, ComparisonTable } from "@/components/HowItWorks";
+import { chat, getCorpusVersion, type ChatResponse, type FormulationAnswer, type Jurisdiction } from "@/lib/api";
 
 // Villager examples — short, plain, Hindi-leaning labels, tap does all
 const EXAMPLES = [
@@ -29,12 +32,15 @@ export default function Page() {
   const [corpus, setCorpus] = useState<{ corpus_version: string; document_count: number } | null>(null);
   const [sessionId] = useState(() => `sess_${Math.random().toString(36).slice(2, 10)}`);
   const [showTriage, setShowTriage] = useState(true); // villager: show triage upfront, not hidden
-  const [formulation, setFormulation] = useState<any>(null);
+  const [formulation, setFormulation] = useState<FormulationAnswer | null>(null);
+  const [corpusError, setCorpusError] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { getCorpusVersion().then(setCorpus).catch(() => {}); }, []);
+  useEffect(() => {
+    getCorpusVersion().then(setCorpus).catch(() => setCorpusError(true));
+  }, []);
 
-  async function onSend(q?: string, form?: any) {
+  async function onSend(q?: string, form?: FormulationAnswer) {
     const text = (q ?? query).trim();
     if (!text) return;
     setLoading(true); setError(null);
@@ -42,7 +48,7 @@ export default function Page() {
       const r = await chat(text, jurisdiction, lang, form ?? formulation ?? undefined, sessionId, eli5);
       setRes(r);
       setTimeout(() => scroller.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 180);
-    } catch (e: any) { setError(e.message || "request failed"); }
+    } catch (e) { setError(e instanceof Error ? e.message : "Request failed."); }
     finally { setLoading(false); }
   }
 
@@ -57,7 +63,9 @@ export default function Page() {
             <div className="text-xs font-bold tracking-widest text-stone-600">Ayurveda ka kanoon dost · SIH26045</div>
           </div>
           <span className="hidden md:inline-flex ml-3"><FreeBadge /></span>
-          <span className="hidden sm:inline-flex ml-auto text-xs font-mono px-2 py-1 rounded-full bg-stone-100 border border-stone-200">{corpus ? `corpus ${corpus.corpus_version}` : "…"}</span>
+          <span className={`hidden sm:inline-flex ml-auto text-xs font-mono px-2 py-1 rounded-full border ${corpusError ? "bg-red-50 border-red-200 text-red-800" : "bg-stone-100 border-stone-200"}`}>
+            {corpus ? `corpus ${corpus.corpus_version}` : corpusError ? "backend offline" : "loading…"}
+          </span>
         </div>
         {/* Emil: jurisdiction toggle — spring-like, transform only */}
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6 pb-3 flex flex-wrap items-center gap-3">
@@ -172,11 +180,11 @@ export default function Page() {
                 {res.firewall && res.firewall.status !== "clean" && (
                   <div className="mb-3 rounded-xl bg-sky-50 border-2 border-sky-200 p-3 text-sm font-medium text-sky-800">🛡️ {res.firewall.message}</div>
                 )}
-                <div className="text-[17px] leading-7 whitespace-pre-wrap text-ink">{res.answer}</div>
+                <div className="text-[17px] leading-7 whitespace-pre-wrap text-ink"><GlossaryText>{res.answer}</GlossaryText></div>
                 {res.answer_simple && (
                   <div className="mt-4 rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 stagger-in" style={{ animationDelay: "80ms" } as React.CSSProperties}>
                     <div className="text-xs font-extrabold tracking-widest uppercase text-amber-800 flex items-center gap-2">🧒 Simple me — koi bhi samjhe</div>
-                    <div className="text-[15px] leading-7 mt-2 whitespace-pre-wrap">{res.answer_simple}</div>
+                    <div className="text-[15px] leading-7 mt-2 whitespace-pre-wrap"><GlossaryText>{res.answer_simple}</GlossaryText></div>
                   </div>
                 )}
                 <div className="mt-4"><ConfidenceBar score={res.confidence.score} /></div>
@@ -186,7 +194,10 @@ export default function Page() {
                   <span className="px-3 py-1.5 rounded-full bg-stone-900 text-white">corpus {res.corpus_version}</span>
                   <span className="px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-stone-700">{res.disclaimer.slice(0, 44)}…</span>
                 </div>
-                <div className="mt-4"><EscalateButton sessionId={sessionId} query={query} jurisdiction={jurisdiction} citations={res.citations} /></div>
+                <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1"><EscalateButton sessionId={sessionId} query={query} jurisdiction={jurisdiction} citations={res.citations} /></div>
+                  <ExportButton answer={res.answer} citations={res.citations} jurisdiction={jurisdiction} corpusVersion={res.corpus_version} />
+                </div>
                 {res.escalate_suggested && <p className="mt-3 text-sm font-medium bg-amber-50 border-2 border-amber-200 rounded-xl p-3">⚠️ Bharosa kam — human ko bhejna behtar. Sab trace DPDP me safe.</p>}
               </div>
             </div>
@@ -205,6 +216,14 @@ export default function Page() {
                   <div key={t} className="flex gap-3 p-3 rounded-xl bg-stone-50 border border-stone-200"><span className="font-bold">{t}</span><span className="text-stone-600 ml-auto text-right">{d}</span></div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {!res && !loading && (
+            <div className="space-y-3 stagger-in" style={{ animationDelay: "80ms" } as React.CSSProperties}>
+              <h2 className="h-display text-sm font-bold text-stone-600 uppercase tracking-widest">Kaise kaam karta hai</h2>
+              <HowItWorks />
+              <ComparisonTable />
             </div>
           )}
         </div>

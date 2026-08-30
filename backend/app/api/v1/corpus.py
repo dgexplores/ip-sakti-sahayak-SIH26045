@@ -1,31 +1,19 @@
 from __future__ import annotations
 
-import subprocess
 from fastapi import APIRouter
+
+from app.core.corpus import corpus_document_count, corpus_documents, corpus_version
 
 router = APIRouter()
 
 
 @router.get("/version")
-async def corpus_version() -> dict:
-    try:
-        h = subprocess.check_output(["git", "rev-parse", "--short=12", "HEAD"], text=True).strip()
-    except Exception:
-        h = "nogit"
-    # count docs from manifest if present
-    import pathlib, json
-
-    manifest = pathlib.Path(__file__).parents[4] / "corpus" / "manifest.json"
-    count = 0
-    docs = []
-    if manifest.exists():
-        try:
-            data = json.loads(manifest.read_text())
-            docs = data.get("documents") if isinstance(data, dict) else data
-            count = len(docs) if isinstance(docs, list) else 0
-        except Exception:
-            pass
-    return {"corpus_version": h, "document_count": count, "documents": docs[:20] if isinstance(docs, list) else []}
+async def get_corpus_version() -> dict:
+    return {
+        "corpus_version": corpus_version(),
+        "document_count": corpus_document_count(),
+        "documents": corpus_documents(limit=20),
+    }
 
 
 @router.get("/health")

@@ -14,6 +14,12 @@ export type Confidence = { score: number; rationale: string; abstain: boolean };
 
 export type FormulationCategory = "classical" | "proprietary" | "phytopharmaceutical" | "new_drug" | "ayurveda_aahar" | "cosmetic" | "unknown";
 
+export type FormulationAnswer = {
+  q_source_text: boolean;
+  q_novelty: boolean;
+  q_category: FormulationCategory;
+};
+
 export type ChatResponse = {
   answer: string;
   answer_simple?: string | null;
@@ -32,39 +38,62 @@ export type ChatResponse = {
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/** Shared fetch wrapper: surfaces backend `{error:{message}}` bodies as real Error messages
+ * instead of letting callers hit an opaque JSON-parse failure or silently-wrong data. */
+async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API}${path}`, init);
+  } catch {
+    throw new Error("Can't reach the server. Check the backend is running (`make up`).");
+  }
+  if (!res.ok) {
+    let message = `Request failed (${res.status})`;
+    try {
+      const body = await res.json();
+      message = body?.error?.message || message;
+    } catch {
+      // response wasn't JSON, keep the generic status message
+    }
+    throw new Error(message);
+  }
+  return res.json() as Promise<T>;
+}
+
 export async function chat(
   query: string,
   jurisdiction: Jurisdiction,
   language = "en",
-  formulation?: any,
+  formulation?: FormulationAnswer,
   sessionId?: string,
   explainSimple = false
 ): Promise<ChatResponse> {
-  const res = await fetch(`${API}/api/v1/chat`, {
+  return fetchJson<ChatResponse>("/api/v1/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, jurisdiction, language, formulation, session_id: sessionId, explain_simple: explainSimple }),
   });
-  if (!res.ok) throw new Error(`chat failed ${res.status}`);
-  return res.json();
 }
 
 export async function classify(query: string) {
-  const res = await fetch(`${API}/api/v1/classify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
-  return res.json();
+  return fetchJson<{ jurisdiction: Jurisdiction; ip_type: string; confidence: number; needs_formulation_flow: boolean }>(
+    "/api/v1/classify",
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) }
+  );
 }
 
 export async function getCorpusVersion(): Promise<{ corpus_version: string; document_count: number }> {
-  const res = await fetch(`${API}/api/v1/corpus/version`, { cache: "no-store" });
-  return res.json();
+  return fetchJson("/api/v1/corpus/version", { cache: "no-store" });
 }
 
 export async function escalate(session_id: string, query: string, reason: string, jurisdiction: Jurisdiction, citations: Citation[] = []) {
-  const res = await fetch(`${API}/api/v1/escalate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id, query, reason, jurisdiction, citations }) });
-  return res.json();
+  return fetchJson<{ ticket_id: string; status: string; message: string }>("/api/v1/escalate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id, query, reason, jurisdiction, citations }),
+  });
 }
 
 export async function getFormulationQuestions() {
-  const res = await fetch(`${API}/api/v1/formulation-questions`);
-  return res.json();
+  return fetchJson<{ questions: unknown[] }>("/api/v1/formulation-questions");
 }

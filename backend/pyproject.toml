@@ -10,7 +10,6 @@ dependencies = [
   "pydantic-settings==2.3.0",
   "sqlmodel==0.0.18",
   "sqlalchemy==2.0.30",
-  "alembic==1.13.1",
   "psycopg[binary]==3.1.18",
   "pgvector==0.3.6",
   "redis==5.0.5",
@@ -26,12 +25,10 @@ dependencies = [
   "structlog==24.1.0",
   "tenacity==8.5.0",
   "anyio==4.4.0",
-  # Optional paid bridges (only if keys provided):
-  # langchain, langgraph, openai, cohere — lazy imported, not required for offline demo
-  "langchain==0.2.5",
-  "langchain-openai==0.1.8",
-  "langchain-community==0.2.5",
-  "langgraph==0.1.5",
+  # Optional paid bridges (only if keys provided): openai, cohere. Lazy imported,
+  # not required for the offline demo. (langchain/langgraph were removed: zero
+  # imports anywhere in app/, and langchain-openai's tiktoken>=0.7 pin conflicted
+  # with the tiktoken==0.6.0 pin below, breaking `pip install -e .` outright.)
   "openai==1.35.0",
   "cohere==5.5.0",
   "ragas==0.1.9",

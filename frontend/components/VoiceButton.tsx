@@ -3,7 +3,6 @@ import { useState, useRef } from "react";
 
 export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: string) => void; lang?: string }) {
   const [recording, setRecording] = useState(false);
-  const [ Perecording, setPerecording] = useState(false);
   const recRef = useRef<any>(null);
 
   async function toggle() {

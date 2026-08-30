@@ -15,32 +15,39 @@ const GLOSSARY: Record<string, string> = {
   "Phytopharmaceutical": "Purified plant drug with 4+ markers — CDSCO pathway.",
 };
 
+// Longest term first, so "Sec 3(p)" doesn't get shadowed by a shorter overlapping key.
+const GLOSSARY_TERMS = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+const GLOSSARY_RE = new RegExp(`(${GLOSSARY_TERMS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
+
 export function GlossaryText({ children }: { children: string }) {
-  const [open, setOpen] = useState<string | null>(null);
-  // Wrap known terms with dotted underline + tooltip
-  let node: React.ReactNode = children;
-  // simple: if child string contains a glossary term, highlight first occurrence
-  const term = Object.keys(GLOSSARY).find((k) => children.includes(k));
-  if (!term) return <span>{children}</span>;
-  const parts = children.split(term);
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const parts = children.split(GLOSSARY_RE);
+  if (parts.length === 1) return <span>{children}</span>;
+
   return (
     <span>
-      {parts[0]}
-      <span
-        className="underline decoration-dotted decoration-2 underline-offset-2 cursor-help font-semibold text-ink relative"
-        onMouseEnter={() => setOpen(term)}
-        onMouseLeave={() => setOpen(null)}
-        onClick={() => setOpen(open === term ? null : term)}
-      >
-        {term}
-        {open === term && (
-          <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 rounded-xl bg-ink text-white text-xs leading-relaxed shadow-xl z-20">
-            {GLOSSARY[term]}
-            <span className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-ink rotate-45 -mt-1" />
+      {parts.map((part, i) => {
+        const term = GLOSSARY[part];
+        if (!term) return <span key={i}>{part}</span>;
+        const key = `${part}-${i}`;
+        return (
+          <span
+            key={key}
+            className="underline decoration-dotted decoration-2 underline-offset-2 cursor-help font-semibold text-ink relative"
+            onMouseEnter={() => setOpenKey(key)}
+            onMouseLeave={() => setOpenKey(null)}
+            onClick={() => setOpenKey(openKey === key ? null : key)}
+          >
+            {part}
+            {openKey === key && (
+              <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 rounded-xl bg-ink text-white text-xs leading-relaxed shadow-xl z-20">
+                {term}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-ink rotate-45 -mt-1" />
+              </span>
+            )}
           </span>
-        )}
-      </span>
-      {parts.slice(1).join(term)}
+        );
+      })}
     </span>
   );
 }

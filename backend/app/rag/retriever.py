@@ -25,28 +25,17 @@ class RetrievedChunk:
 # ── Vector search helper (shared) ─────────────────────
 async def _vector_search(query_embedding: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int) -> list[RetrievedChunk]:
     s = get_settings()
-    # fake fallback when DB offline — keeps UI demoable without keys/DB
-    if not s.database_url or "localhost" in s.database_url and not _db_reachable():
+    if not s.database_url:
         return _mock_chunks(jurisdiction, source_filter, top_k)
 
     if s.vector_store == "qdrant":
-        return await _qdrant_search(query_embedding, jurisdiction, source_filter, top_k)
+        try:
+            return await _qdrant_search(query_embedding, jurisdiction, source_filter, top_k)
+        except Exception:
+            return _mock_chunks(jurisdiction, source_filter, top_k)
+    # pgvector: connection/query failures (DB offline, table missing) fall back to
+    # mock chunks inside _pgvector_search itself, keeping the demo alive without a DB.
     return await _pgvector_search(query_embedding, jurisdiction, source_filter, top_k)
-
-
-def _db_reachable() -> bool:
-    try:
-        import psycopg  # type: ignore[import]
-
-        from app.core.config import get_settings
-
-        dsn = get_settings().database_url.replace("postgresql+psycopg://", "postgresql://")
-        with psycopg.connect(dsn, connect_timeout=2) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-        return True
-    except Exception:
-        return False
 
 
 async def _pgvector_search(emb: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int) -> list[RetrievedChunk]:
