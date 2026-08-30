@@ -18,7 +18,7 @@ Ask something like "Can I patent my grandmother's churna recipe?" and it tells y
 - **Voice input.** Tap the mic and speak in Hindi, Tamil, or English using the browser's own speech recognition.
 - **Export and print.** Turn any answer into a Markdown report or print it, citations included.
 - **Runs for free.** No API key needed. It uses a small local AI model (MiniLM, runs on your own CPU) to search the law library, and a free local database (pgvector). You can optionally plug in a paid model later without changing any code.
-- **17 real law documents** are already loaded: the Patents Act, the 2024 Patent Rules, the Biological Diversity Act, FSSAI food rules, WIPO's GRATK treaty, and more, all in `corpus/sources/`.
+- **19 real law documents** are already loaded, covering every IP type the problem statement names: the Patents Act and 2024 Rules, Trade Marks Act, Designs Act, GI Act, Copyright Act, Plant Varieties Act, the Biological Diversity Act, FSSAI food rules, WIPO's GRATK treaty and more, all in `corpus/sources/`.
 - **A version stamp on every answer.** Each answer shows a short hash of exactly which version of the law library produced it, so you can always tell if the source data has changed.
 
 ## How it works (plain-language walkthrough)
@@ -48,7 +48,7 @@ Everything above runs on your own machine for free. If you later add a paid AI k
 
 - **Voice translation and text-to-speech are mocked.** The code to call the real government Bhashini service is written and works, but without a free Bhashini API key it shows placeholder text like `[Bhashini mock en->hi]` instead of a real translation. Get a key and set `BHASHINI_API_KEY` in `.env` to turn this on for real.
 - **The knowledge-graph view is a stub.** There's a page planned that shows how a formulation connects to a law to a registry as a visual graph (Neo4j). Right now it only returns made-up example data and isn't linked to any button in the app yet.
-- **Only 17 documents so far.** The law library can grow, more Acts, more state-level rules, more case law, but adding them is a manual step for now (see "Adding more law documents" below).
+- **Only 19 documents so far, and they are summaries.** Each file condenses the provisions that matter for Ayurveda rather than reproducing a full statute, so the assistant can cite the right section and link to the official source, but cannot quote deep sub-clauses. Still missing: herbal-product market-access rules for key export markets (US/EU), and case law. Adding documents is a manual step for now (see "Adding more law documents" below).
 - **The "paid database" consent flow is a placeholder.** It correctly blocks access and asks for consent, but there is no actual paid legal database wired up behind it yet, there's nothing to unlock.
 - **No real user accounts or login.** Every visit is a fresh, anonymous session. Fine for a demo, would need real auth for production use.
 - **Docker services that aren't used yet.** `make up` also starts a Redis cache and a Neo4j graph database. Neither is actually read from by the running app yet, they're there for the features above once those get built.

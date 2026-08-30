@@ -44,6 +44,26 @@
       "license": "public-domain"
     },
     {
+      "doc_id": "trade_marks_act_1999",
+      "title": "Trade Marks Act, 1999 — brand protection, Sec 9 descriptive bar, Ayurveda classes 5/3/30",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2003-09-15",
+      "file": "sources/trade_marks_act_1999.md",
+      "deep_link": "https://ipindia.gov.in/tm-act-1999",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "designs_act_2000",
+      "title": "Designs Act, 2000 — packaging/container shape and ornamentation, absolute novelty",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "2001-05-11",
+      "file": "sources/designs_act_2000.md",
+      "deep_link": "https://ipindia.gov.in/the-designs-act-2000",
+      "license": "public-domain"
+    },
+    {
       "doc_id": "ppvfr_act_2001",
       "title": "Protection of Plant Varieties and Farmers' Rights Act, 2001 — PPV&FR Authority",
       "source_type": "statute",
