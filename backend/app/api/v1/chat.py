@@ -57,7 +57,7 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
     q_emb = (await embedder.embed([query]))[0]
 
     # 5. Retrieve (4 retrievers parallel, jurisdiction-filtered)
-    retrieved = await retrieve_all(q_emb, jurisdiction, top_k_each=settings.retrieve_top_k // 4 + 2)
+    retrieved = await retrieve_all(q_emb, jurisdiction, top_k_each=settings.retrieve_top_k // 4 + 2, query=query)
     # 5b. Jurisdiction firewall — unique win: enforce hard split, filter leaks, surface verdict
     fw = firewall_check(query, jurisdiction, retrieved)
     if fw["status"] in ("leak_warning", "filtered"):

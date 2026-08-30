@@ -23,22 +23,23 @@ class RetrievedChunk:
 
 
 # ── Vector search helper (shared) ─────────────────────
-async def _vector_search(query_embedding: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int) -> list[RetrievedChunk]:
+async def _vector_search(query_embedding: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int, query: str = "") -> list[RetrievedChunk]:
     s = get_settings()
     if not s.database_url:
-        return _mock_chunks(jurisdiction, source_filter, top_k)
+        return _mock_chunks(jurisdiction, source_filter, top_k, query)
 
     if s.vector_store == "qdrant":
         try:
             return await _qdrant_search(query_embedding, jurisdiction, source_filter, top_k)
         except Exception:
-            return _mock_chunks(jurisdiction, source_filter, top_k)
+            return _mock_chunks(jurisdiction, source_filter, top_k, query)
     # pgvector: connection/query failures (DB offline, table missing) fall back to
-    # mock chunks inside _pgvector_search itself, keeping the demo alive without a DB.
-    return await _pgvector_search(query_embedding, jurisdiction, source_filter, top_k)
+    # the offline corpus index inside _pgvector_search itself, keeping the demo
+    # alive without a DB.
+    return await _pgvector_search(query_embedding, jurisdiction, source_filter, top_k, query)
 
 
-async def _pgvector_search(emb: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int) -> list[RetrievedChunk]:
+async def _pgvector_search(emb: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int, query: str = "") -> list[RetrievedChunk]:
     import psycopg  # type: ignore[import]
 
     from app.core.config import get_settings
@@ -80,12 +81,11 @@ async def _pgvector_search(emb: list[float], jurisdiction: Jurisdiction, source_
                     for r in rows
                 ]
 
-    # Actually simpler: run sync directly if we are already in thread
-    # Fallback mock if DB missing table
+    # Fall back to the offline corpus index if the DB is down or the table is missing.
     try:
         return await anyio.to_thread.run_sync(_run)
     except Exception:
-        return _mock_chunks(jurisdiction, source_filter, top_k)
+        return _mock_chunks(jurisdiction, source_filter, top_k, query)
 
 
 async def _qdrant_search(emb: list[float], jurisdiction: Jurisdiction, source_filter: str | None, top_k: int) -> list[RetrievedChunk]:
@@ -116,50 +116,155 @@ async def _qdrant_search(emb: list[float], jurisdiction: Jurisdiction, source_fi
     ]
 
 
-def _mock_chunks(jurisdiction: Jurisdiction, source_filter: str | None, top_k: int) -> list[RetrievedChunk]:
-    """Offline mock — keeps frontend demoable with no DB/keys."""
-    base = [
-        ("patents_act_3p", "Patents Act, 1970 — Sec 3(p)", "statute", "india", "An invention which, in effect, is traditional knowledge or an aggregation or duplication of known properties of traditionally known component(s) — is not patentable. [Sec 3(p)]", "Sec 3(p) — p.4", "https://ipindia.gov.in/writereaddata/portal/ev/sections/ps3.html", "a1b2c3d4e5f6", 0.91),
-        ("bda_2023_s7", "Biological Diversity Act, 2023 — Sec 7", "statute", "india", "Access to biological resources and associated traditional knowledge for commercial utilization requires prior intimation to SBB / approval of NBA with benefit-sharing.", "Sec 7 — p.12", "https://nbaindia.org/act2023", "a1b2c3d4e5f6", 0.88),
-        ("gratk_2024_art3", "WIPO GRATK Treaty 2024 — Art 3", "treaty", "international", "Disclosure requirement: patent applicants shall disclose the origin/source of genetic resources and associated traditional knowledge where the invention is based on them.", "Art 3 — p.2", "https://www.wipo.int/treaties/en/text-gratk", "b2c3d4e5f6a1", 0.87),
-        ("tkdl_pointer", "TKDL Prior-Art Pointer", "registry", "india", "TKDL must be searched before filing claims on formulations derived from codified TK; examiner may cite TKDL as prior art to reject obviousness/novelty.", "TKDL guideline — p.1", "https://www.tkdl.res.in", "c3d4e5f6a1b2", 0.82),
-        ("fssai_aahar_2022", "FSSAI Ayurveda Aahar Regulations 2022", "rule", "india", "Ayurveda Aahar means food recipes described in authoritative Ayurveda texts, with permitted additives and claim restrictions under Food Safety Act.", "Reg 3(1) — p.3", "https://fssai.gov.in/aahar", "a1b2c3d4e5f6", 0.79),
-    ]
-    filtered = [r for r in base if r[2] == source_filter] if source_filter else base
-    filtered = [r for r in filtered if r[3] == jurisdiction.value] or filtered  # fallback to any if mismatch for mock
+_OFFLINE_INDEX: list[RetrievedChunk] | None = None
+
+# Function words carry no retrieval signal but inflate the query-term denominator.
+_STOPWORDS = frozenset(
+    """a an and are as at be by can could do does for from how i if in is it my
+    of on or our should that the their they this to was we what when where which
+    who will with would you your""".split()
+)
+
+
+def _build_offline_index() -> list[RetrievedChunk]:
+    """Chunk the real corpus once, in memory, for the no-database path.
+
+    This used to be a hardcoded list of five spans. It drifted badly from the
+    actual corpus: every document added after it was written was invisible
+    whenever Postgres was unreachable, which is the default demo path the
+    README advertises as "offline, zero setup". A trademark or case-law
+    question then got confidently answered from the Patents Act and TKDL,
+    a wrong citation at high confidence, which is exactly the failure this
+    project exists to prevent. Reading the manifest keeps corpus/ the single
+    source of truth for both the DB and the offline path.
+    """
+    from app.core.corpus import CORPUS_DIR, corpus_documents
+    from app.pipelines.ingest.chunker import chunk_text
+    from app.pipelines.ingest.loader import load_file
+
+    index: list[RetrievedChunk] = []
+    for meta in corpus_documents(limit=None):
+        path = CORPUS_DIR / meta.get("file", "")
+        if not path.exists():
+            continue
+        try:
+            doc = load_file(path, meta)
+        except Exception:
+            continue
+        for chunk in chunk_text(doc.text, doc.doc_id):
+            index.append(
+                RetrievedChunk(
+                    id=chunk.chunk_id,
+                    doc_id=doc.doc_id,
+                    doc_title=doc.title,
+                    source_type=doc.source_type,
+                    jurisdiction=doc.jurisdiction,
+                    text=chunk.text,
+                    locator=chunk.locator,
+                    deep_link=doc.deep_link,
+                    version_hash=doc.version_hash,
+                    score=0.0,
+                )
+            )
+    return index
+
+
+def _offline_index() -> list[RetrievedChunk]:
+    global _OFFLINE_INDEX
+    if _OFFLINE_INDEX is None:
+        _OFFLINE_INDEX = _build_offline_index()
+    return _OFFLINE_INDEX
+
+
+def _mock_chunks(
+    jurisdiction: Jurisdiction,
+    source_filter: str | None,
+    top_k: int,
+    query: str = "",
+) -> list[RetrievedChunk]:
+    """Offline retrieval over the real corpus. Keeps the demo honest with no DB/keys.
+
+    Scored lexically rather than by vector: deterministic, needs no model, and
+    the reranker already uses the same approach as its own final fallback.
+    """
+    import re
+
+    pool = [c for c in _offline_index() if c.jurisdiction == jurisdiction.value]
+    if source_filter:
+        pool = [c for c in pool if c.source_type == source_filter]
+    if not pool:
+        return []
+
+    # Drop function words before scoring. Leaving them in dilutes the overlap
+    # ratio, so "Can I copyright my Ayurveda textbook?" scored barely above an
+    # unrelated chunk and the confidence gate then abstained on a correct hit.
+    q_terms = set(re.findall(r"\w+", query.lower())) - _STOPWORDS
+    if not q_terms:
+        return list(pool[:top_k])
+
+    def _overlap(c: RetrievedChunk) -> float:
+        c_terms = set(re.findall(r"\w+", f"{c.doc_title} {c.text}".lower()))
+        return len(q_terms & c_terms) / len(q_terms)
+
+    scored = sorted(((_overlap(c), c) for c in pool), key=lambda t: t[0], reverse=True)
+    # Map overlap onto the same 0.65-0.95 band real vector scores occupy, so the
+    # shared confidence and rerank logic reads it correctly on either path.
     return [
-        RetrievedChunk(id=r[0], doc_title=r[1], source_type=r[2], jurisdiction=r[3], text=r[4], locator=r[5], deep_link=r[6], version_hash=r[7], score=r[8], doc_id=r[0])
-        for r in filtered[:top_k]
+        RetrievedChunk(**{**c.__dict__, "score": round(min(0.95, 0.62 + ov * 0.33), 3)})
+        for ov, c in scored[:top_k]
     ]
 
 
-# ── 4 retrievers (public) ─────────────────────────────
-async def statute_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 8) -> list[RetrievedChunk]:
-    return await _vector_search(emb, jurisdiction, source_filter="statute", top_k=top_k)
+# ── retrievers (public) ───────────────────────────────
+async def statute_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 8, query: str = "") -> list[RetrievedChunk]:
+    return await _vector_search(emb, jurisdiction, source_filter="statute", top_k=top_k, query=query)
 
 
-async def tkdl_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6) -> list[RetrievedChunk]:
-    # TKDL is india-only; for international, return pointer
-    if jurisdiction == Jurisdiction.INTERNATIONAL:
-        return [c for c in _mock_chunks(jurisdiction, None, 10) if "tkdl" in c.id.lower()][:top_k]
-    return await _vector_search(emb, jurisdiction, source_filter="registry", top_k=top_k)
+async def tkdl_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6, query: str = "") -> list[RetrievedChunk]:
+    """TKDL and other registry records, within the requested jurisdiction only.
+
+    This used to inject India-jurisdiction TKDL chunks into international
+    results. That worked against the jurisdiction firewall, which is the
+    project's central guarantee: the firewall counted those very chunks as a
+    foreign "leak" and warned about them, so the retriever was manufacturing
+    the contamination the firewall then reported. The international side gets
+    its TKDL context from `case_law_international` (turmeric and neem) and
+    `wipo_gratk_2024`, both correctly tagged international.
+    """
+    return await _vector_search(emb, jurisdiction, source_filter="registry", top_k=top_k, query=query)
 
 
-async def registry_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6) -> list[RetrievedChunk]:
-    return await _vector_search(emb, jurisdiction, source_filter="registry", top_k=top_k)
+async def registry_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6, query: str = "") -> list[RetrievedChunk]:
+    return await _vector_search(emb, jurisdiction, source_filter="registry", top_k=top_k, query=query)
 
 
-async def case_law_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6) -> list[RetrievedChunk]:
-    return await _vector_search(emb, jurisdiction, source_filter="case_law", top_k=top_k)
+async def case_law_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6, query: str = "") -> list[RetrievedChunk]:
+    return await _vector_search(emb, jurisdiction, source_filter="case_law", top_k=top_k, query=query)
 
 
-async def retrieve_all(emb: list[float], jurisdiction: Jurisdiction, top_k_each: int = 8) -> list[RetrievedChunk]:
+async def rule_treaty_retriever(emb: list[float], jurisdiction: Jurisdiction, top_k: int = 6, query: str = "") -> list[RetrievedChunk]:
+    """Rules, treaties and pharmacopoeial standards.
+
+    Without this the retrievers above only cover statute, registry and case_law,
+    so rule, treaty and pharmacopoeia documents (2024 Patent Rules, FSSAI, GRATK,
+    PCT, TRIPS, export-market access) could never be retrieved at all.
+    """
+    results = await asyncio.gather(
+        _vector_search(emb, jurisdiction, source_filter="rule", top_k=top_k, query=query),
+        _vector_search(emb, jurisdiction, source_filter="treaty", top_k=top_k, query=query),
+        _vector_search(emb, jurisdiction, source_filter="pharmacopoeia", top_k=top_k, query=query),
+    )
+    return [c for lst in results for c in lst]
+
+
+async def retrieve_all(emb: list[float], jurisdiction: Jurisdiction, top_k_each: int = 8, query: str = "") -> list[RetrievedChunk]:
     """Parallel fan-out — LangGraph node in stage 2, simple asyncio.gather in MVP."""
     results = await asyncio.gather(
-        statute_retriever(emb, jurisdiction, top_k_each),
-        tkdl_retriever(emb, jurisdiction, top_k_each),
-        registry_retriever(emb, jurisdiction, top_k_each),
-        case_law_retriever(emb, jurisdiction, top_k_each),
+        statute_retriever(emb, jurisdiction, top_k_each, query),
+        tkdl_retriever(emb, jurisdiction, top_k_each, query),
+        registry_retriever(emb, jurisdiction, top_k_each, query),
+        case_law_retriever(emb, jurisdiction, top_k_each, query),
+        rule_treaty_retriever(emb, jurisdiction, top_k_each, query),
     )
     # flatten + dedupe by id, keep highest score
     seen: dict[str, RetrievedChunk] = {}

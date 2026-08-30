@@ -5,7 +5,8 @@ import hashlib
 import json
 import pathlib
 
-_MANIFEST = pathlib.Path(__file__).parents[3] / "corpus" / "manifest.json"
+CORPUS_DIR = pathlib.Path(__file__).parents[3] / "corpus"
+_MANIFEST = CORPUS_DIR / "manifest.json"
 
 
 def _load_manifest() -> list[dict]:
@@ -32,5 +33,7 @@ def corpus_document_count() -> int:
     return len(_load_manifest())
 
 
-def corpus_documents(limit: int = 20) -> list[dict]:
-    return _load_manifest()[:limit]
+def corpus_documents(limit: int | None = 20) -> list[dict]:
+    """Manifest entries. Pass limit=None for all of them, the API view caps at 20."""
+    docs = _load_manifest()
+    return docs if limit is None else docs[:limit]

@@ -114,6 +114,26 @@
       "license": "public-domain"
     },
     {
+      "doc_id": "trade_secrets_india",
+      "title": "Trade secrets in India — Contract Act Sec 27, breach of confidence, NDA practice",
+      "source_type": "statute",
+      "jurisdiction": "india",
+      "effective_date": "1872-04-25",
+      "file": "sources/trade_secrets_india.md",
+      "deep_link": "https://www.indiacode.nic.in/handle/123456789/2187",
+      "license": "public-domain"
+    },
+    {
+      "doc_id": "case_law_india",
+      "title": "Divya Pharmacy v. Union of India (Uttarakhand HC, 2018) — ABS binds Indian entities too",
+      "source_type": "case_law",
+      "jurisdiction": "india",
+      "effective_date": "2018-12-21",
+      "file": "sources/case_law_india.md",
+      "deep_link": "https://www.casemine.com/search/in?q=Divya+Pharmacy+v.+Union+of+India",
+      "license": "public-domain-summary"
+    },
+    {
       "doc_id": "tkdl_guidelines",
       "title": "TKDL — prior-art defensive mechanism, examiner access, citation format",
       "source_type": "registry",
@@ -161,6 +181,26 @@
       "effective_date": "2014-10-12",
       "file": "sources/cbd_nagoya.md",
       "deep_link": "https://www.cbd.int/abs/",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "case_law_international",
+      "title": "Turmeric (USPTO) and Neem (EPO) patent revocations — documented TK as prior art",
+      "source_type": "case_law",
+      "jurisdiction": "international",
+      "effective_date": "2005-03-08",
+      "file": "sources/case_law_international.md",
+      "deep_link": "https://patents.google.com/patent/EP0436257B1/en",
+      "license": "public-domain-summary"
+    },
+    {
+      "doc_id": "export_market_access",
+      "title": "Herbal market access — EU THMPD 2004/24/EC (30/15-year rule) and US DSHEA 1994",
+      "source_type": "rule",
+      "jurisdiction": "international",
+      "effective_date": "2011-04-30",
+      "file": "sources/export_market_access.md",
+      "deep_link": "https://eur-lex.europa.eu/eli/dir/2004/24/oj/eng",
       "license": "public-domain-summary"
     },
     {
