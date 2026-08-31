@@ -1,11 +1,12 @@
 "use client";
 import type { Citation } from "@/lib/api";
+import { Icon, type IconName } from "@/components/Icon";
 
 export function CitationPane({ citations, corpusVersion }: { citations: Citation[]; corpusVersion?: string }) {
   if (!citations?.length) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-stone-300 bg-white p-5">
-        <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 grid place-items-center text-lg" aria-hidden>📜</div>
+        <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 grid place-items-center text-amber-700"><Icon name="cite" className="w-5 h-5" /></div>
         <div className="text-sm font-bold mt-2">Yahan saboot dikhega</div>
         <p className="text-sm text-stone-600 leading-relaxed mt-1">Jawab ka har line ka kanoon ka saboot yahan aayega — Act, Rule, Treaty + link. Low bharosa = hum seedha `human` ko bhejenge.</p>
       </div>
@@ -36,14 +37,18 @@ export function CitationPane({ citations, corpusVersion }: { citations: Citation
               </div>
               <span className="shrink-0 text-xs font-mono px-2 py-1 rounded-full bg-stone-100 border border-stone-200">{c.version_hash}</span>
             </div>
-            <div className="mt-3 text-sm leading-relaxed text-ink border-l-4 border-amber-400 pl-3 bg-amber-50/70 py-2 rounded-r">“{c.span_text}”</div>
+            <blockquote className="relative mt-3 rounded-xl bg-amber-50/70 border border-amber-200/70 px-3 py-2.5 text-sm leading-relaxed text-ink">
+              <Icon name="cite" className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-amber-400/70" />
+              <span className="block pr-5">{c.span_text}</span>
+            </blockquote>
             <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full bg-sky-50 border border-sky-200 text-sky-800">
-              ↗ Asli sarkari page kholo
+              <Icon name="verify" className="w-3.5 h-3.5" />
+              Asli sarkari page kholo
             </div>
           </a>
         ))}
       </div>
-      <p className="text-xs text-stone-500 leading-relaxed bg-stone-50 border border-stone-200 rounded-xl p-3">⚖️ Information only — vakil ki salah nahi. File karne se pehle link check karo. Paid DB bina permission nahi khulta.</p>
+      <p className="text-xs text-stone-500 leading-relaxed bg-stone-50 border border-stone-200 rounded-xl p-3">Information only — vakil ki salah nahi. File karne se pehle link check karo. Paid DB bina permission nahi khulta.</p>
     </div>
   );
 }

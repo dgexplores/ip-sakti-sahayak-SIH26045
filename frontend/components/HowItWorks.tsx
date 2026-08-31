@@ -1,9 +1,10 @@
 "use client";
+import { Icon, type IconName } from "@/components/Icon";
 export function HowItWorks() {
   const steps = [
-    { n: 1, icon: "🎙️", t: "Bolo ya likho", d: "Tap mic — Hindi/Tamil/English. Type bhi chalega. Dono muft." },
-    { n: 2, icon: "👆", t: "3 dabao, ho gaya", d: "Kitab me hai? Naya kya? Kya bechoge? — 3 tap me faisla." },
-    { n: 3, icon: "📜", t: "Saboot ke saath jawab", d: "Har line ka kanoon + link. Kam bharosa → hum khud rokte hain." },
+    { n: 1, icon: "voice" as IconName, t: "Bolo ya likho", d: "Tap mic — Hindi/Tamil/English. Type bhi chalega. Dono muft." },
+    { n: 2, icon: "check" as IconName, t: "3 dabao, ho gaya", d: "Kitab me hai? Naya kya? Kya bechoge? — 3 tap me faisla." },
+    { n: 3, icon: "cite" as IconName, t: "Saboot ke saath jawab", d: "Har line ka kanoon + link. Kam bharosa → hum khud rokte hain." },
   ];
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -11,7 +12,7 @@ export function HowItWorks() {
         <div key={s.n} className="stagger-in rounded-2xl bg-white border-2 border-stone-200 p-4 flex gap-3 items-start" style={{ animationDelay: `${i * 48}ms` } as React.CSSProperties}>
           <span className="w-10 h-10 rounded-xl bg-ink text-white grid place-items-center text-sm font-extrabold shrink-0">{s.n}</span>
           <span>
-            <span className="block text-sm font-bold leading-none"><span aria-hidden className="mr-1">{s.icon}</span>{s.t}</span>
+            <span className="flex items-center gap-1.5 text-sm font-bold leading-none"><Icon name={s.icon} className="w-3.5 h-3.5 text-stone-500" />{s.t}</span>
             <span className="block text-xs text-stone-600 leading-relaxed mt-1">{s.d}</span>
           </span>
         </div>
@@ -25,7 +26,7 @@ export function ComparisonTable() {
     <div className="overflow-x-auto rounded-2xl border-2 border-stone-200 bg-white">
       <table className="w-full text-xs">
         <thead className="bg-stone-900 text-white text-xs">
-          <tr><th className="text-left p-3 font-extrabold">Feature</th><th className="p-3 font-bold">ChatGPT</th><th className="p-3 font-bold">Demo site</th><th className="p-3 bg-emerald-600 font-extrabold">Hamara ✓</th></tr>
+          <tr><th className="text-left p-3 font-extrabold">Feature</th><th className="p-3 font-bold">ChatGPT</th><th className="p-3 font-bold">Demo site</th><th className="p-3 bg-emerald-600 font-extrabold">Hamara</th></tr>
         </thead>
         <tbody className="divide-y divide-stone-200">
           {[

@@ -59,6 +59,57 @@ None of these block the demo. The core promise, real quoted law with links and a
 
 ---
 
+## Project status and handoff notes
+
+Last updated 2026-08-31. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+
+### Verified working (checked end to end, not assumed)
+
+| Area | Status | How it was checked |
+|---|---|---|
+| Corpus coverage | 23 documents, every regime the PS names | `make ingest-dry` reports 23 docs, 38 chunks |
+| Retrieval correctness | Right document cited first on 10 of 11 regime questions | Direct API calls, see "Known retrieval limitation" below |
+| Four homepage demo buttons | All four return the correct Act, confidence 71 to 95, firewall clean | Clicked through the running UI |
+| Jurisdiction firewall | India and International never mix, no self-inflicted leaks | Both toggles return `firewall: clean` |
+| Safe abstention | Out-of-scope questions ("write me a poem") refuse, confidence 45 | Direct API calls |
+| Backend tests | 76 passing, 0 failing | `cd backend && pytest -q` |
+| Frontend build | Clean production build, no TypeScript errors | `cd frontend && npm run build` |
+| Icon system | 0 emoji left in the UI, all icons drawn from one shared module | Scripted scan of `app/` and `components/` |
+| Answer formatting | Markdown renders properly, no raw `**` or `>` on screen | Read the rendered DOM in the browser |
+
+### What changed in the most recent pass
+
+The work was a design and correctness pass to make the app presentable to judges. Five things were fixed, all of them real defects rather than cosmetics:
+
+1. **Emoji were doing the job of an icon system.** 52 emoji across 9 files. Emoji render differently on every platform (the scroll glyph is a beige blob on one machine and a line drawing on another) and flag emoji degrade to plain letter pairs on some Windows builds, so a row of them had no shared stroke, weight or optical size. They are now drawn icons from one shared module, `frontend/components/Icon.tsx`, named by meaning (`classical`, `firewall`, `plant`) so a concept is restyled in one place. This used `lucide-react`, which was already a dependency but completely unused, so it added nothing to the bundle's dependency list.
+2. **The answer was showing its own markup.** The generator emits markdown but the UI printed it with `whitespace-pre-wrap`, so readers saw literal `**Q:**` and a leading `>` instead of a bold label and a quoted statute span. On the single most-read element of the product that reads as broken. `frontend/components/AnswerText.tsx` now renders the small, fixed subset the generator actually produces. A full markdown library was deliberately not added: this is the only producer of that text, so a targeted renderer avoids both a dependency and an HTML-sanitising problem.
+3. **Offline search weighted every word equally.** "india" appears in nearly every Indian legal document and carried the same weight as "patentable", so four documents tied on "is classical churna patentable in India" and an arbitrary one won. Retrieval is now IDF-weighted, so rare, discriminating words decide the ranking.
+4. **The reranker returned chunks out of order relative to their scores.** It reordered the list but left each chunk's original score untouched, so the list was no longer sorted by score and `compute_confidence`, which reads `chunks[0]`, was scoring whichever chunk the reranker happened to promote. It now blends the retriever and CrossEncoder scores and writes the result back, so order and score agree.
+5. **CORS origins were hardcoded.** Only `localhost:3000` and `*.vercel.app` were allowed, so serving the UI from any other host or port required editing source. Set `CORS_EXTRA_ORIGINS` in `.env` instead (comma-separated).
+
+### Known retrieval limitation, left deliberately
+
+The "Naya extract banaaya" demo button cites the **Plant Varieties Act** first rather than the Patents Act. This is defensible rather than broken: the query says "high-withanolide ashwagandha", which is literally the PPV&FR document's own worked example, and a novel high-yield cultivar genuinely is a plant-variety question. The Patents Act still appears at citations 2, 3 and 5, so the user sees it.
+
+This was left alone on purpose. Tuning the ranking further would have meant overfitting to one phrasing, and three other phrasings of the same question already return the Patents Act correctly. If you want to improve it properly, the honest fix is to lengthen `corpus/sources/ppvfr_act_2001.md` (it is six lines, so its one Ayurveda sentence dominates the whole document) rather than to adjust ranking weights.
+
+### Suggested next steps, roughly in order of value
+
+1. **Get a free Bhashini API key** and set `BHASHINI_API_KEY` in `.env`. This is the largest visible gap: voice and translation are fully coded but currently show `[Bhashini mock en->hi]` placeholders. For an "AI for Bharat" pitch this is the single highest-impact hour of work available.
+2. **Run `make up` before demoing** if you have Docker. It starts Postgres with pgvector and switches retrieval from keyword matching to true semantic search over the same corpus, which meaningfully improves answers on loosely-phrased questions.
+3. **Expand the thin corpus documents.** `ppvfr_act_2001.md`, `gi_act_1999.md` and similar are only a few lines each. Longer documents both retrieve more accurately and quote more usefully.
+4. **Wire up or delete the Neo4j graph.** `backend/app/rag/graph.py` returns mock data and nothing calls it. Either build the `Formulation to Category to Act to Registry` view the PS describes as a later stage, or remove it and the Neo4j container so `make up` stops starting a database nothing reads.
+5. **Add more case law.** Only two landmark matters are covered (Divya Pharmacy, and the turmeric and neem revocations). The `case_law` retriever is wired and working, so new documents drop straight in.
+
+### Local development gotchas worth knowing
+
+- **Do not run `npm run build` while `next dev` is running.** Both write to `.next` and the dev server will start serving unstyled pages. If that happens, stop the server, `rm -rf frontend/.next`, and restart.
+- **The backend does not auto-reload** unless you pass `--reload`. After editing anything under `backend/app`, restart uvicorn or your change will not be live.
+- **Port 8000 may be occupied** by another project on your machine. If the header badge reads "backend offline" or shows a corpus version you do not recognise, the frontend is talking to the wrong server. Set `NEXT_PUBLIC_API_URL` in `frontend/.env.local` and add the matching origin to `CORS_EXTRA_ORIGINS`.
+- **First question is slow.** The MiniLM embedding model loads on the first request, which takes several seconds. Send one warm-up query before demoing.
+
+---
+
 ## Quick start (no accounts, no cost)
 
 ```bash

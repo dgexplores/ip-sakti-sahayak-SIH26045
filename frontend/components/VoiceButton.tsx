@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import { Icon, type IconName } from "@/components/Icon";
 
 export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: string) => void; lang?: string }) {
   const [recording, setRecording] = useState(false);
@@ -40,7 +41,7 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: s
       style={{ transformOrigin: "center" }}
     >
       <span className={`w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 ${recording ? "bg-white text-red-500 animate-pulse" : "bg-saffron text-white"}`}>
-        {recording ? "■" : "🎙️"}
+        {recording ? <Icon name="stop" className="w-4 h-4 fill-current" /> : <Icon name="voice" className="w-5 h-5" />}
       </span>
       <span className="text-left">
         <span className="block">{recording ? "Listening… tap to stop" : "Boliye — tap to speak"}</span>

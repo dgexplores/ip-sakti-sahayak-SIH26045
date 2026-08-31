@@ -9,16 +9,17 @@ import { ExportButton } from "@/components/ExportButton";
 import { VoiceButton } from "@/components/VoiceButton";
 import { FreeBadge } from "@/components/FreeBadge";
 import { SplitViewTrigger } from "@/components/SplitView";
-import { GlossaryText } from "@/components/GlossaryTooltip";
 import { HowItWorks, ComparisonTable } from "@/components/HowItWorks";
+import { Icon, type IconName } from "@/components/Icon";
+import { AnswerText } from "@/components/AnswerText";
 import { chat, getCorpusVersion, type ChatResponse, type FormulationAnswer, type Jurisdiction } from "@/lib/api";
 
 // Villager examples — short, plain, Hindi-leaning labels, tap does all
 const EXAMPLES = [
-  { label: "Purana churna patent?", icon: "📜", jurisdiction: "india" as Jurisdiction, q: "Is classical Ashwagandha churna as per Charaka Samhita patentable in India?" },
-  { label: "Naya extract banaaya", icon: "🧪", jurisdiction: "india" as Jurisdiction, q: "I made a novel Ashwagandha extract with 10x withanolide by new process — patentable?" },
-  { label: "Videsh me patent?", icon: "🌐", jurisdiction: "international" as Jurisdiction, q: "WIPO GRATK disclosure requirement for PCT filing with Indian genetic resource" },
-  { label: "Aloe ke liye permission?", icon: "🌱", jurisdiction: "india" as Jurisdiction, q: "Do I need NBA approval to source aloe vera from Kerala for cosmetic export?" },
+  { label: "Purana churna patent?", icon: "classical" as IconName, jurisdiction: "india" as Jurisdiction, q: "Is classical Ashwagandha churna as per Charaka Samhita patentable in India?" },
+  { label: "Naya extract banaaya", icon: "novel" as IconName, jurisdiction: "india" as Jurisdiction, q: "I made a novel Ashwagandha extract with 10x withanolide by new process, patentable?" },
+  { label: "Videsh me patent?", icon: "world" as IconName, jurisdiction: "international" as Jurisdiction, q: "WIPO GRATK disclosure requirement for PCT filing with Indian genetic resource" },
+  { label: "Aloe ke liye permission?", icon: "plant" as IconName, jurisdiction: "india" as Jurisdiction, q: "Do I need NBA approval to source aloe vera from Kerala for cosmetic export?" },
 ];
 
 export default function Page() {
@@ -104,9 +105,16 @@ export default function Page() {
             </h1>
             <p className="text-[15px] leading-relaxed text-stone-700 mt-2">{lang === "hi" ? "Bolo ya likho — har jawab ka kanoon + link. Kam bharosa ho to hum khud rok dete hain, human ko bhejte hain." : "Speak or type — every line has Act + link. Low trust → we stop and send to human."}</p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold">
-              <span className="px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800">✓ No vakil fees</span>
-              <span className="px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-sky-800">✓ ₹0 offline</span>
-              <span className="px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800">✓ 6 bhasha</span>
+              {[
+                ["No vakil fees", "bg-emerald-50 border-emerald-200 text-emerald-800"],
+                ["₹0 offline", "bg-sky-50 border-sky-200 text-sky-800"],
+                ["6 bhasha", "bg-amber-50 border-amber-200 text-amber-900"],
+              ].map(([label, tone]) => (
+                <span key={label} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${tone}`}>
+                  <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  {label}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -119,10 +127,16 @@ export default function Page() {
                 className="pressable touch-48 stagger-in text-left rounded-2xl border-2 border-stone-200 bg-white p-4 flex gap-3 items-center hover:border-stone-300"
                 style={{ animationDelay: `${i * 48}ms` } as React.CSSProperties}
               >
-                <span className="w-11 h-11 rounded-xl bg-stone-50 border border-stone-200 grid place-items-center text-xl shrink-0" aria-hidden>{ex.icon}</span>
-                <span>
+                <span className={`w-11 h-11 rounded-xl grid place-items-center shrink-0 border ${ex.jurisdiction === "india" ? "bg-saffron/10 border-saffron/30 text-saffron-dark" : "bg-indiaBlue/5 border-indiaBlue/20 text-indiaBlue"}`}>
+                  <Icon name={ex.icon} className="w-5 h-5" />
+                </span>
+                <span className="min-w-0">
                   <span className="block text-sm font-bold leading-tight">{ex.label}</span>
-                  <span className="block text-xs text-stone-500 mt-0.5">{ex.jurisdiction === "india" ? "🇮🇳 Bharat" : "🌐 World"} · tap karo →</span>
+                  <span className="flex items-center gap-1 text-xs text-stone-600 mt-1">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${ex.jurisdiction === "india" ? "bg-saffron" : "bg-indiaBlue"}`} aria-hidden />
+                    {ex.jurisdiction === "india" ? "Bharat" : "World"} · tap karo
+                    <Icon name="next" className="w-3 h-3" />
+                  </span>
                 </span>
               </button>
             ))}
@@ -173,18 +187,27 @@ export default function Page() {
           {res && (
             <div className="rounded-[20px] border-2 bg-white shadow-card overflow-hidden stagger-in" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" }}>
               <div className={`px-4 py-3 flex items-center gap-3 ${jurisdiction === "india" ? "bg-saffron text-white" : "bg-indiaBlue text-white"}`}>
-                <span className="text-sm font-extrabold tracking-tight">{res.jurisdiction === "india" ? "🇮🇳 Bharat ka jawab" : "🌐 World ka jawab"}</span>
+                <span className="inline-flex items-center gap-2 text-sm font-extrabold tracking-tight">
+                  <Icon name={res.jurisdiction === "india" ? "india" : "world"} className="w-4 h-4" />
+                  {res.jurisdiction === "india" ? "Bharat ka jawab" : "World ka jawab"}
+                </span>
                 <span className="ml-auto"><ConfidenceBadge score={res.confidence.score} abstain={res.confidence.abstain} /></span>
               </div>
               <div className="p-5">
                 {res.firewall && res.firewall.status !== "clean" && (
-                  <div className="mb-3 rounded-xl bg-sky-50 border-2 border-sky-200 p-3 text-sm font-medium text-sky-800">🛡️ {res.firewall.message}</div>
+                  <div className="mb-3 rounded-xl bg-sky-50 border-2 border-sky-200 p-3 text-sm font-medium text-sky-900 flex gap-2">
+                    <Icon name="firewall" className="w-4 h-4 shrink-0 mt-0.5 text-sky-700" />
+                    <span>{res.firewall.message}</span>
+                  </div>
                 )}
-                <div className="text-[17px] leading-7 whitespace-pre-wrap text-ink"><GlossaryText>{res.answer}</GlossaryText></div>
+                <div className="text-[17px] leading-7 text-ink"><AnswerText>{res.answer}</AnswerText></div>
                 {res.answer_simple && (
                   <div className="mt-4 rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 stagger-in" style={{ animationDelay: "80ms" } as React.CSSProperties}>
-                    <div className="text-xs font-extrabold tracking-widest uppercase text-amber-800 flex items-center gap-2">🧒 Simple me — koi bhi samjhe</div>
-                    <div className="text-[15px] leading-7 mt-2 whitespace-pre-wrap"><GlossaryText>{res.answer_simple}</GlossaryText></div>
+                    <div className="text-xs font-extrabold tracking-widest uppercase text-amber-900 flex items-center gap-2">
+                      <Icon name="simple" className="w-3.5 h-3.5" />
+                      Simple me, koi bhi samjhe
+                    </div>
+                    <div className="text-[15px] leading-7 mt-2 text-amber-950"><AnswerText>{res.answer_simple}</AnswerText></div>
                   </div>
                 )}
                 <div className="mt-4"><ConfidenceBar score={res.confidence.score} /></div>
@@ -198,7 +221,12 @@ export default function Page() {
                   <div className="flex-1"><EscalateButton sessionId={sessionId} query={query} jurisdiction={jurisdiction} citations={res.citations} /></div>
                   <ExportButton answer={res.answer} citations={res.citations} jurisdiction={jurisdiction} corpusVersion={res.corpus_version} />
                 </div>
-                {res.escalate_suggested && <p className="mt-3 text-sm font-medium bg-amber-50 border-2 border-amber-200 rounded-xl p-3">⚠️ Bharosa kam — human ko bhejna behtar. Sab trace DPDP me safe.</p>}
+                {res.escalate_suggested && (
+                  <p className="mt-3 text-sm font-medium bg-amber-50 border-2 border-amber-200 rounded-xl p-3 flex gap-2 text-amber-900">
+                    <Icon name="warn" className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>Bharosa kam, human ko bhejna behtar. Sab trace DPDP me safe.</span>
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -208,12 +236,16 @@ export default function Page() {
               <div className="w-10 h-10 rounded-xl bg-ink text-white grid place-items-center font-bold">i</div>
               <div className="text-sm font-bold mt-2">ChatGPT se alag kya?</div>
               <div className="mt-2 grid gap-2 text-sm">
-                {[
-                  ["🛡️ Bharat vs World alag", "Mix nahi karte — rang alag."],
-                  ["📜 Har line ka kaagaz", "Jhootha Sec number nahi."],
-                  ["₹0", "Bina key, offline chalega."],
-                ].map(([t,d])=>(
-                  <div key={t} className="flex gap-3 p-3 rounded-xl bg-stone-50 border border-stone-200"><span className="font-bold">{t}</span><span className="text-stone-600 ml-auto text-right">{d}</span></div>
+                {([
+                  ["firewall", "Bharat vs World alag", "Mix nahi karte, rang alag."],
+                  ["cite", "Har line ka kaagaz", "Jhootha Sec number nahi."],
+                  ["check", "₹0 kharcha", "Bina key, offline chalega."],
+                ] as [IconName, string, string][]).map(([icon, t, d]) => (
+                  <div key={t} className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-200">
+                    <Icon name={icon} className="w-4 h-4 shrink-0 mt-0.5 text-stone-500" />
+                    <span className="font-bold">{t}</span>
+                    <span className="text-stone-600 ml-auto text-right">{d}</span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -236,7 +268,7 @@ export default function Page() {
           <div className="rounded-2xl bg-stone-900 text-stone-100 p-4">
             <div className="text-xs font-extrabold tracking-widest uppercase text-stone-400">Free pipeline — ₹0</div>
             <div className="mt-3 font-mono text-xs leading-relaxed space-y-1">
-              <div className="text-stone-100">bolo → classifier → 3Q → 4× retriever (MiniLM) → rerank → firewall → offline jawaab</div>
+              <div className="text-stone-100">bolo → classifier → 3Q → 5× retriever (MiniLM) → rerank → firewall → offline jawaab</div>
               <div className="text-stone-400">loader → chunker 800/120 § → pgvector</div>
             </div>
           </div>

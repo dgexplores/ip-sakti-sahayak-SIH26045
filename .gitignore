@@ -21,3 +21,5 @@ corpus/sources/*.pdf
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+frontend/tsconfig.tsbuildinfo
+frontend/.env.local

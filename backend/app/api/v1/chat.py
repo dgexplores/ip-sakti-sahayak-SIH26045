@@ -101,9 +101,9 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
     # 9. Generate (free-first: offline-extractive, zero hallucination)
     answer = await generate_answer(query, jurisdiction, ranked[:6], confidence, language=req.language)
     if fw["status"] != "clean":
-        answer = f"> 🛡️ **Jurisdiction firewall:** {fw['message']}\n\n" + answer
+        answer = f"> **Jurisdiction firewall:** {fw['message']}\n\n" + answer
     if not paid.allowed and req.allow_paid_db:
-        answer = f"> ⚠️ {paid.reason}\n\n" + answer
+        answer = f"> **Paid database:** {paid.reason}\n\n" + answer
 
     # 10. Bhashini translate/TTS if non-English (preserve legal terms)
     audio_b64: str | None = None  # not in response schema yet; kept for stage 3 header

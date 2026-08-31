@@ -42,15 +42,15 @@ def _offline_extractive_answer(query: str, jurisdiction: Jurisdiction, chunks: l
         return " ".join(scored[:n]).strip()
 
     # Jurisdiction banner — visibly separate per PS
-    banner = "🇮🇳 **INDIA — Patents Act, BDA, AYUSH**" if jurisdiction == Jurisdiction.INDIA else "🌐 **INTERNATIONAL — WIPO GRATK, PCT, CBD/Nagoya**"
+    banner = "**INDIA — Patents Act, BDA, AYUSH**" if jurisdiction == Jurisdiction.INDIA else "**INTERNATIONAL — WIPO GRATK, PCT, CBD/Nagoya**"
     body = f"{banner}\n\n**Q:** {query}\n\n"
 
     if len(cited) == 1:
-        body += f"> {_pick_sentences(cited[0].text)}\n> — *{cited[0].doc_title}, {cited[0].locator}*  [↗ {cited[0].deep_link}]\n\n"
+        body += f"> {_pick_sentences(cited[0].text)}\n> — *{cited[0].doc_title}, {cited[0].locator}*  [{cited[0].deep_link}]\n\n"
     else:
         for i, c in enumerate(cited, 1):
             snippet = _pick_sentences(c.text)
-            body += f"**[{i}] {c.doc_title} — {c.locator}**\n> {snippet}\n> [↗ Verify]({c.deep_link}) · `{c.version_hash}`\n\n"
+            body += f"**[{i}] {c.doc_title} — {c.locator}**\n> {snippet}\n> [Verify]({c.deep_link}) · `{c.version_hash}`\n\n"
 
     # Plain synthesis — ONLY from spans, no external knowledge
     if jurisdiction == Jurisdiction.INDIA and any("3(p)" in c.text for c in cited):

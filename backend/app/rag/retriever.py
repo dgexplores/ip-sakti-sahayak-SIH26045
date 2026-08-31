@@ -117,6 +117,7 @@ async def _qdrant_search(emb: list[float], jurisdiction: Jurisdiction, source_fi
 
 
 _OFFLINE_INDEX: list[RetrievedChunk] | None = None
+_IDF: dict[str, float] | None = None
 
 # Function words carry no retrieval signal but inflate the query-term denominator.
 _STOPWORDS = frozenset(
@@ -176,6 +177,36 @@ def _offline_index() -> list[RetrievedChunk]:
     return _OFFLINE_INDEX
 
 
+def _chunk_terms(c: RetrievedChunk) -> set[str]:
+    import re
+
+    return set(re.findall(r"\w+", f"{c.doc_title} {c.text}".lower()))
+
+
+def _idf() -> dict[str, float]:
+    """Inverse document frequency over the offline chunks.
+
+    Counting matched terms equally made "india" worth as much as "patentable",
+    and in a corpus that is mostly Indian law the first word separates nothing.
+    "Is classical churna patentable in India?" tied four documents at the same
+    score and surfaced the Plant Varieties and Designs Acts, because they happen
+    to contain "classical" and "india". Weighting each term by how rare it is
+    puts the discriminating word in front.
+    """
+    global _IDF
+    if _IDF is None:
+        import math
+        from collections import Counter
+
+        chunks = _offline_index()
+        df: Counter[str] = Counter()
+        for c in chunks:
+            df.update(_chunk_terms(c))
+        n = max(1, len(chunks))
+        _IDF = {t: math.log(n / (1 + d)) + 1.0 for t, d in df.items()}
+    return _IDF
+
+
 def _mock_chunks(
     jurisdiction: Jurisdiction,
     source_filter: str | None,
@@ -202,9 +233,13 @@ def _mock_chunks(
     if not q_terms:
         return list(pool[:top_k])
 
+    idf = _idf()
+    weights = {t: idf.get(t, 1.0) for t in q_terms}
+    total = sum(weights.values()) or 1.0
+
     def _overlap(c: RetrievedChunk) -> float:
-        c_terms = set(re.findall(r"\w+", f"{c.doc_title} {c.text}".lower()))
-        return len(q_terms & c_terms) / len(q_terms)
+        hit = q_terms & _chunk_terms(c)
+        return sum(weights[t] for t in hit) / total
 
     scored = sorted(((_overlap(c), c) for c in pool), key=lambda t: t[0], reverse=True)
     # Map overlap onto the same 0.65-0.95 band real vector scores occupy, so the

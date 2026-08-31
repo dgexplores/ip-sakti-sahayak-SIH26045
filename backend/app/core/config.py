@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     secret_key: str = "change-me"
     log_level: str = "INFO"
     enable_audit: bool = True
+    # Comma-separated extra browser origins allowed to call the API. The built-in
+    # localhost:3000 and *.vercel.app rules were hardcoded, so serving the UI from
+    # any other host or port meant editing source. Set CORS_EXTRA_ORIGINS instead.
+    cors_extra_origins: str = ""
+
+    @property
+    def extra_origins(self) -> list[str]:
+        return [o.strip() for o in self.cors_extra_origins.split(",") if o.strip()]
 
     # db
     database_url: str = "postgresql+psycopg://sakti:sakti@localhost:5432/sakti"

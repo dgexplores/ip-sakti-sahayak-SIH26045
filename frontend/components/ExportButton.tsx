@@ -1,5 +1,6 @@
 "use client";
 import type { Citation } from "@/lib/api";
+import { Icon } from "@/components/Icon";
 
 export function ExportButton({ answer, citations, jurisdiction, corpusVersion }: { answer: string; citations: Citation[]; jurisdiction: string; corpusVersion: string }) {
   function onExport() {
@@ -15,15 +16,17 @@ export function ExportButton({ answer, citations, jurisdiction, corpusVersion }:
     <div className="flex gap-2">
       <button
         onClick={onExport}
-        className="pressable touch-48 px-4 rounded-xl border-2 border-stone-200 bg-white text-sm font-bold text-stone-700 hover:border-stone-300"
-      >
-        ⬇ Export .md
+        className="pressable touch-48 inline-flex items-center justify-center gap-2 px-4 rounded-xl border-2 border-stone-200 bg-white text-sm font-bold text-stone-700 hover:border-stone-300"
+       >
+        <Icon name="download" className="w-4 h-4" />
+        Export .md
       </button>
       <button
         onClick={onPrint}
-        className="pressable touch-48 px-4 rounded-xl border-2 border-stone-200 bg-white text-sm font-bold text-stone-700 hover:border-stone-300"
-      >
-        ⎙ Print
+        className="pressable touch-48 inline-flex items-center justify-center gap-2 px-4 rounded-xl border-2 border-stone-200 bg-white text-sm font-bold text-stone-700 hover:border-stone-300"
+       >
+        <Icon name="print" className="w-4 h-4" />
+        Print
       </button>
     </div>
   );

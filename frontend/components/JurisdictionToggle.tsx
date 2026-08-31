@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { Icon, type IconName } from "@/components/Icon";
 
 export type Jurisdiction = "india" | "international";
 
@@ -17,7 +18,8 @@ export function JurisdictionToggle({ value, onChange }: { value: Jurisdiction; o
         style={{ transition: "transform 160ms var(--ease-out), background-color 180ms var(--ease-out)" }}
       >
         <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", value === "india" ? "bg-white" : "bg-saffron")} aria-hidden />
-        🇮🇳 INDIA
+        <Icon name="india" className="w-4 h-4" />
+        INDIA
         <span className={cn("hidden sm:inline text-xs font-semibold opacity-90", value === "india" ? "text-white" : "text-stone-500")}>— Bharat ke niyam</span>
       </button>
       <button
@@ -31,7 +33,8 @@ export function JurisdictionToggle({ value, onChange }: { value: Jurisdiction; o
         style={{ transition: "transform 160ms var(--ease-out), background-color 180ms var(--ease-out)" }}
       >
         <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", value === "international" ? "bg-sky-300" : "bg-indiaBlue")} aria-hidden />
-        🌐 WORLD
+        <Icon name="world" className="w-4 h-4" />
+        WORLD
         <span className={cn("hidden sm:inline text-xs font-semibold opacity-90", value === "international" ? "text-sky-200" : "text-stone-500")}>— Videsh ke niyam</span>
       </button>
     </div>
