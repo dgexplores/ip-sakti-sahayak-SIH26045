@@ -1,7 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 
-export function ConfidenceBadge({ score, abstain }: { score: number; abstain?: boolean }) {
+export function ConfidenceBadge({ score, abstain, label = "confidence" }: { score: number; abstain?: boolean; label?: string }) {
   const level = abstain ? "abstain" : score >= 80 ? "high" : score >= 60 ? "mid" : "low";
   const styles: Record<string, string> = {
     high: "bg-emerald-500 text-white border-emerald-600",
@@ -12,7 +12,7 @@ export function ConfidenceBadge({ score, abstain }: { score: number; abstain?: b
   return (
     <span className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm", styles[level])}>
       <span className={cn("w-2 h-2 rounded-full bg-white", abstain && "animate-pulse")} aria-hidden />
-      {abstain ? "RUKO — check karo" : `${score.toFixed(0)}% bharosa`}
+      {abstain ? "?" : `${score.toFixed(0)}%`} {label}
     </span>
   );
 }

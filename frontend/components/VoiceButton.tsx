@@ -1,8 +1,10 @@
 "use client";
 import { useState, useRef } from "react";
-import { Icon, type IconName } from "@/components/Icon";
+import { Icon } from "@/components/Icon";
+import { t } from "@/lib/i18n";
 
-export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: string) => void; lang?: string }) {
+export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (v: string) => void; lang?: string }) {
+  const s = t(lang);
   const [recording, setRecording] = useState(false);
   const recRef = useRef<any>(null);
 
@@ -15,7 +17,7 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: s
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     if (!SpeechRecognition) {
       // No browser STT — fallback: show prompt to type, but keep button visible for trust
-      alert("Voice not supported on this browser. Type your question — or try Chrome on phone.");
+      alert(s.errorHint);
       return;
     }
     const rec = new SpeechRecognition();
@@ -36,7 +38,7 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: s
     <button
       onClick={toggle}
       aria-pressed={recording}
-      aria-label={recording ? "Stop recording" : "Tap to speak your question"}
+      aria-label={recording ? s.listening : s.speak}
       className={`pressable touch-48 relative inline-flex items-center gap-3 px-6 py-4 rounded-[20px] font-bold text-[17px] leading-none shadow-card border-2 transition-colors ${recording ? "bg-red-500 border-red-600 text-white" : "bg-white border-stone-200 text-ink hover:border-stone-300"}`}
       style={{ transformOrigin: "center" }}
     >
@@ -44,8 +46,8 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (t: s
         {recording ? <Icon name="stop" className="w-4 h-4 fill-current" /> : <Icon name="voice" className="w-5 h-5" />}
       </span>
       <span className="text-left">
-        <span className="block">{recording ? "Listening… tap to stop" : "Boliye — tap to speak"}</span>
-        <span className={`block text-xs font-medium ${recording ? "text-red-100" : "text-stone-500"}`}>{recording ? "Humein sunai de raha hai" : "Hindi · Tamil · English — no typing needed"}</span>
+        <span className="block">{recording ? s.listening : s.speak}</span>
+        <span className={`block text-xs font-medium ${recording ? "text-red-100" : "text-stone-500"}`}>{recording ? s.listeningHint : s.speakHint}</span>
       </span>
       {recording && <span className="absolute inset-0 rounded-[20px] border-2 border-red-300 pointer-events-none" style={{ animation: "ping 1.2s cubic-bezier(0,0,0.2,1) infinite" }} aria-hidden />}
     </button>

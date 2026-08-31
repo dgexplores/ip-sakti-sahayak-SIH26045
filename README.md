@@ -15,6 +15,7 @@ Ask something like "Can I patent my grandmother's churna recipe?" and it tells y
 - **Confidence score with a stop button.** Every answer gets a 0 to 100 score. Below the threshold, it refuses to guess and tells you to escalate to a human IP facilitator instead.
 - **3-question triage.** Three taps (is it in an old text? did you change anything? what will you sell it as?) sort your formulation into a category and show what that means for patents, biodiversity permission, and food/drug rules.
 - **Simple-language mode (ELI5).** A plain-words version of the answer for someone who is not a lawyer, plus hover definitions on legal terms like `Sec 3(p)` or `TKDL`.
+- **The interface itself is multilingual.** Hindi renders in Devanagari, Tamil in Tamil script, English in English, and the whole interface switches, not just the answer. Legal terms stay in Latin script (`Sec 3(p)`, `TKDL`) so you can match them against the official record.
 - **Voice input.** Tap the mic and speak in Hindi, Tamil, or English using the browser's own speech recognition.
 - **Export and print.** Turn any answer into a Markdown report or print it, citations included.
 - **Runs for free.** No API key needed. It uses a small local AI model (MiniLM, runs on your own CPU) to search the law library, and a free local database (pgvector). You can optionally plug in a paid model later without changing any code.
@@ -29,8 +30,9 @@ You type or speak a question
         ↓
 The system reads your question and guesses what kind of IP question it is
         ↓
-It searches the law library from 4 angles at once:
-  statutes, TKDL (traditional-knowledge registry), other registries, case law
+It searches the law library from 5 angles at once: statutes, TKDL
+  (traditional-knowledge registry), other registries, case law, and
+  rules/treaties
         ↓
 It re-ranks those results to find the best matching lines
         ↓
@@ -61,7 +63,7 @@ None of these block the demo. The core promise, real quoted law with links and a
 
 ## Project status and handoff notes
 
-Last updated 2026-08-31. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+Last updated 2026-09-01. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
 
 ### Verified working (checked end to end, not assumed)
 
@@ -76,8 +78,22 @@ Last updated 2026-08-31. This section is the running record of where the project
 | Frontend build | Clean production build, no TypeScript errors | `cd frontend && npm run build` |
 | Icon system | 0 emoji left in the UI, all icons drawn from one shared module | Scripted scan of `app/` and `components/` |
 | Answer formatting | Markdown renders properly, no raw `**` or `>` on screen | Read the rendered DOM in the browser |
+| Real multilingual UI | Hindi renders in Devanagari, Tamil in Tamil script, the whole interface switches | Clicked each language and read the rendered page |
+| First-run clarity | Numbered 3-step explainer, one primary action, triage no longer opens uninvited | Loaded the page cold at desktop and mobile |
 
-### What changed in the most recent pass
+### What changed in the most recent pass (2026-09-01)
+
+A usability pass. The interface was cluttered and, more seriously, the language switch did not work.
+
+1. **The multilingual claim did not survive a click.** Only three strings in the whole app responded to the language switch, and they swapped between romanised Hinglish ("Aapka sawaal") and English. Nothing was ever rendered in Devanagari, and picking தமிழ் changed *nothing at all*: a Tamil speaker saw romanised Hindi. The only Devanagari and Tamil characters in the codebase were the three pill labels themselves. Every UI string now lives in `frontend/lib/i18n.ts` in all three languages and scripts, and the whole interface switches, including the voice button, the 3-question triage, the proof panel, buttons and error messages. Legal terms (`Sec 3(p)`, `TKDL`, `Patents Act`) deliberately stay in Latin script so a user can match them against the official record, which is what the problem statement asks for.
+2. **The page asked for too much at once.** Arrival showed a hero, four example cards, the voice and text input, the full 3-question triage already expanded, a "how we differ" list, a 3-step explainer and a 6-row comparison table, all competing. The triage now stays closed until someone asks for it, examples are compact chips inside the ask card rather than four cards competing with it, and the marketing comparison was removed from the main flow entirely.
+3. **Nothing told a first-time visitor what to do.** There is now a numbered three-step line (ask, we search the law, read the answer and its proof) above a single obvious primary action.
+4. **Citation spans leaked their own markup.** Quoted spans come from the corpus markdown, so they showed `##` headings and `>` markers inside an already-styled quote block. Stripped for display.
+5. **Mobile truncated the product name** to "IP-SAK…" because the language switcher crowded the header. The switcher now wraps to its own row on narrow screens.
+
+`HowItWorks.tsx` and `FreeBadge.tsx` were deleted rather than left unreferenced after the declutter. Their content is in git history if the comparison table is wanted for a slide.
+
+### What changed in the pass before that (2026-08-31)
 
 The work was a design and correctness pass to make the app presentable to judges. Five things were fixed, all of them real defects rather than cosmetics:
 

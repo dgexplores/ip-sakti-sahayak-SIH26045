@@ -1,12 +1,14 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { Icon, type IconName } from "@/components/Icon";
+import { Icon } from "@/components/Icon";
+import { t } from "@/lib/i18n";
 
 export type Jurisdiction = "india" | "international";
 
-export function JurisdictionToggle({ value, onChange }: { value: Jurisdiction; onChange: (v: Jurisdiction) => void }) {
+export function JurisdictionToggle({ value, onChange, lang = "en" }: { value: Jurisdiction; onChange: (v: Jurisdiction) => void; lang?: string }) {
+  const s = t(lang);
   return (
-    <div className="inline-flex p-1 rounded-full bg-white shadow-toggle border border-stone-200 touch-48" role="tablist" aria-label="Jurisdiction — hard firewall, never conflated">
+    <div className="inline-flex p-1 rounded-full bg-white shadow-toggle border border-stone-200 touch-48" role="tablist" aria-label={`${s.india} / ${s.world}`}>
       <button
         role="tab"
         aria-selected={value === "india"}
@@ -19,8 +21,8 @@ export function JurisdictionToggle({ value, onChange }: { value: Jurisdiction; o
       >
         <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", value === "india" ? "bg-white" : "bg-saffron")} aria-hidden />
         <Icon name="india" className="w-4 h-4" />
-        INDIA
-        <span className={cn("hidden sm:inline text-xs font-semibold opacity-90", value === "india" ? "text-white" : "text-stone-500")}>— Bharat ke niyam</span>
+        {s.india}
+        <span className={cn("hidden sm:inline text-xs font-semibold opacity-90", value === "india" ? "text-white" : "text-stone-600")}>{s.indiaSub}</span>
       </button>
       <button
         role="tab"
@@ -34,8 +36,8 @@ export function JurisdictionToggle({ value, onChange }: { value: Jurisdiction; o
       >
         <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", value === "international" ? "bg-sky-300" : "bg-indiaBlue")} aria-hidden />
         <Icon name="world" className="w-4 h-4" />
-        WORLD
-        <span className={cn("hidden sm:inline text-xs font-semibold opacity-90", value === "international" ? "text-sky-200" : "text-stone-500")}>— Videsh ke niyam</span>
+        {s.world}
+        <span className={cn("hidden sm:inline text-xs font-semibold opacity-90", value === "international" ? "text-sky-200" : "text-stone-600")}>{s.worldSub}</span>
       </button>
     </div>
   );

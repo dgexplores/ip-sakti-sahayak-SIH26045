@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { escalate } from "@/lib/api";
 import type { Citation, Jurisdiction } from "@/lib/api";
-import { Icon, type IconName } from "@/components/Icon";
+import { Icon } from "@/components/Icon";
+import { t } from "@/lib/i18n";
 
-export function EscalateButton({ sessionId, query, jurisdiction, citations }: { sessionId: string; query: string; jurisdiction: Jurisdiction; citations: Citation[] }) {
+export function EscalateButton({ sessionId, query, jurisdiction, citations, lang = "en" }: { sessionId: string; query: string; jurisdiction: Jurisdiction; citations: Citation[]; lang?: string }) {
+  const s = t(lang);
   const [ticket, setTicket] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   async function onClick() {
@@ -20,8 +22,8 @@ export function EscalateButton({ sessionId, query, jurisdiction, citations }: { 
       <div className="flex gap-3">
         <span className="w-9 h-9 rounded-xl bg-emerald-600 text-white grid place-items-center"><Icon name="check" className="w-4 h-4" strokeWidth={3} /></span>
         <div>
-          <div className="text-sm font-extrabold text-emerald-900">Ticket {ticket} — human dekhega</div>
-          <div className="text-sm text-emerald-800 leading-relaxed mt-1">Facilitator ko full trace gaya (sawal, saboot, bharosa, corpus). DPDP consent ke saath 365 din safe.</div>
+          <div className="text-sm font-extrabold text-emerald-900">{s.escalateDone} · {ticket}</div>
+          <div className="text-sm text-emerald-800 leading-relaxed mt-1">{s.escalateDoneBody}</div>
         </div>
       </div>
     </div>
@@ -33,7 +35,7 @@ export function EscalateButton({ sessionId, query, jurisdiction, citations }: { 
       className="pressable touch-48 w-full py-4 rounded-xl bg-white border-2 border-stone-300 text-[15px] font-bold flex items-center justify-center gap-2 hover:border-stone-400 disabled:opacity-60"
     >
       <span className="w-8 h-8 rounded-xl bg-ink text-white grid place-items-center"><Icon name="human" className="w-4 h-4" /></span>
-      {loading ? "Bheja ja raha hai…" : "Human vakil ko bhejo, poora saboot ke saath"}
+      {loading ? s.escalateSending : s.escalate}
     </button>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { FormulationCategory } from "@/lib/api";
 import { Icon, type IconName } from "@/components/Icon";
+import { tri } from "@/lib/i18n";
 
 const CATEGORY_ICON: Record<FormulationCategory, IconName> = {
   classical: "classical",
@@ -17,9 +18,11 @@ const CATEGORY_ICON: Record<FormulationCategory, IconName> = {
 type Props = {
   onComplete: (ans: { q_source_text: boolean; q_novelty: boolean; q_category: FormulationCategory }) => void;
   compact?: boolean;
+  lang?: string;
 };
 
-export function FormulationFlow({ onComplete, compact }: Props) {
+export function FormulationFlow({ onComplete, compact, lang = "en" }: Props) {
+  const x = tri(lang);
   const [step, setStep] = useState(1);
   const [q1, setQ1] = useState<boolean | null>(null);
   const [q2, setQ2] = useState<boolean | null>(null);
@@ -54,32 +57,32 @@ export function FormulationFlow({ onComplete, compact }: Props) {
             <span key={n} className={cn("flex-1 h-full rounded-full transition-colors", n <= (q1 !== null ? 1 : 0) + (q2 !== null ? 1 : 0) + (q3 !== null ? 1 : 0) ? "bg-ink" : "bg-stone-200")} style={{ transition: "background-color 200ms var(--ease-out)" }} />
           ))}
         </div>
-        <span className="text-xs font-bold text-stone-500">Step {step}/3</span>
+        <span className="text-xs font-bold text-stone-600">{x.step} {step}/3</span>
       </div>
 
       <div className="p-5 space-y-5">
         {/* Step 1 — always visible first, progressive */}
         <div className="space-y-3">
-          <h3 className="h-display text-lg font-bold leading-tight">1. Yeh nuskha kitan me hai?</h3>
-          <p className="text-sm text-stone-600 leading-relaxed">Is recipe in old Ayurveda book (Charaka / First Schedule)? <span className="font-semibold text-ink">Yes → old knowledge, no patent.</span></p>
+          <h3 className="h-display text-lg font-bold leading-tight">1. {x.q1}</h3>
+          <p className="text-sm text-stone-600 leading-relaxed">{x.q1hint}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <BigYesNo active={q1 === true} onClick={() => { setQ1(true); setStep(2); }} icon="inBook" title="Haan, kitab me hai" sub="Yes, classical — Sec 3(p) bar" />
-            <BigYesNo active={q1 === false} onClick={() => { setQ1(false); setStep(2); }} icon="novel" title="Nahi, naya hai" sub="No, not in book — may patent" />
+            <BigYesNo active={q1 === true} onClick={() => { setQ1(true); setStep(2); }} icon="inBook" title={x.q1yes} sub={x.q1yesSub} />
+            <BigYesNo active={q1 === false} onClick={() => { setQ1(false); setStep(2); }} icon="novel" title={x.q1no} sub={x.q1noSub} />
           </div>
         </div>
 
         <div className={cn("space-y-3 pt-4 border-t border-stone-100 transition-opacity", q1 === null ? "opacity-40 pointer-events-none" : "opacity-100")}>
-          <h3 className="h-display text-lg font-bold leading-tight">2. Kuch naya dala?</h3>
-          <p className="text-sm text-stone-600 leading-relaxed">New ingredient, ratio, or way to make it?</p>
+          <h3 className="h-display text-lg font-bold leading-tight">2. {x.q2}</h3>
+          <p className="text-sm text-stone-600 leading-relaxed">{x.q2hint}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <BigYesNo active={q2 === true} onClick={() => { setQ2(true); setStep(3); }} icon="novel" title="Haan, naya mix" sub="Yes, novel — patent possible" />
-            <BigYesNo active={q2 === false} onClick={() => { setQ2(false); setStep(3); }} icon="same" title="Nahi, waisa hi" sub="No, same as book" />
+            <BigYesNo active={q2 === true} onClick={() => { setQ2(true); setStep(3); }} icon="novel" title={x.q2yes} sub={x.q2yesSub} />
+            <BigYesNo active={q2 === false} onClick={() => { setQ2(false); setStep(3); }} icon="same" title={x.q2no} sub={x.q2noSub} />
           </div>
         </div>
 
         <div className={cn("space-y-3 pt-4 border-t border-stone-100", q2 === null ? "opacity-40 pointer-events-none" : "opacity-100")}>
-          <h3 className="h-display text-lg font-bold leading-tight">3. Kya banayenge?</h3>
-          <p className="text-sm text-stone-600">What will you sell as?</p>
+          <h3 className="h-display text-lg font-bold leading-tight">3. {x.q3}</h3>
+          <p className="text-sm text-stone-600">{x.q3hint}</p>
           <div className="grid grid-cols-2 gap-2">
             {(["classical", "proprietary", "phytopharmaceutical", "new_drug", "ayurveda_aahar", "cosmetic"] as FormulationCategory[]).map((c) => (
               <button
@@ -92,7 +95,7 @@ export function FormulationFlow({ onComplete, compact }: Props) {
                 aria-pressed={q3 === c}
               >
                 <span className="grid place-items-center mb-1"><Icon name={CATEGORY_ICON[c]} className="w-5 h-5" /></span>
-                {c.replaceAll("_", " ")}
+                {x.cat[c] ?? c.replaceAll("_", " ")}
               </button>
             ))}
           </div>
@@ -107,22 +110,23 @@ export function FormulationFlow({ onComplete, compact }: Props) {
           )}
           style={{ transition: "transform 160ms var(--ease-out), background-color 180ms var(--ease-out)" }}
         >
-          {done ? "Dekho — mera IP / ABS kya hai →" : "Upar 3 jawaab do"}
+          {done ? x.submit : x.incomplete}
           {done && <Icon name="next" className="w-4 h-4" />}
         </button>
-        <p className="text-xs text-center text-stone-500 leading-relaxed">3 taps — no typing. Result maps to `Patents Act`, `BDA 2023`, `FSSAI` — with proof.</p>
+        <p className="text-xs text-center text-stone-600 leading-relaxed">{x.footnote}</p>
       </div>
     </div>
   );
 }
 
-export function PostureTable({ table, nextSteps, category }: { table: Record<string, string>; nextSteps: string[]; category: string }) {
+export function PostureTable({ table, nextSteps, category, lang = "en" }: { table: Record<string, string>; nextSteps: string[]; category: string; lang?: string }) {
+  const x = tri(lang);
   const icons: Record<string, IconName> = { IP: "firewall", ABS: "plant", Regulatory: "legal" };
   return (
     <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/70 overflow-hidden">
       <div className="px-4 py-3 flex items-center gap-2 bg-emerald-600 text-white">
-        <span className="text-sm font-extrabold tracking-tight">Aapka result — {category.replaceAll("_", " ")}</span>
-        <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-white/20"><Icon name="check" className="w-3 h-3" strokeWidth={3} />3 steps done</span>
+        <span className="text-sm font-extrabold tracking-tight">{x.resultTitle}: {x.cat[category] ?? category.replaceAll("_", " ")}</span>
+        <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-white/20"><Icon name="check" className="w-3 h-3" strokeWidth={3} />{x.done}</span>
       </div>
       <div className="p-4 grid gap-3 sm:grid-cols-3">
         {Object.entries(table).map(([k, v], i) => (
@@ -136,7 +140,7 @@ export function PostureTable({ table, nextSteps, category }: { table: Record<str
         ))}
       </div>
       <div className="px-4 pb-4">
-        <div className="text-xs font-extrabold tracking-widest text-stone-600 uppercase">Agla kadam</div>
+        <div className="text-xs font-extrabold tracking-widest text-stone-600 uppercase">{x.nextSteps}</div>
         <ul className="mt-2 space-y-2">
           {nextSteps.map((s, i) => (
             <li key={s} className="stagger-in flex gap-2 text-sm leading-relaxed bg-white border border-stone-200 rounded-xl px-3 py-2.5" style={{ animationDelay: `${140 + i * 48}ms` }}>
