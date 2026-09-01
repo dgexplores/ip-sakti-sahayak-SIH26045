@@ -49,7 +49,7 @@ Everything above runs on your own machine for free. If you later add a paid AI k
 
 ## What's left (known gaps, being honest)
 
-- **Voice translation and text-to-speech are mocked.** The code to call the real government Bhashini service is written and works, but without a free Bhashini API key it shows placeholder text like `[Bhashini mock en->hi]` instead of a real translation. Get a key and set `BHASHINI_API_KEY` in `.env` to turn this on for real.
+- **Answer translation and text-to-speech need a Bhashini key.** The interface itself is fully translated (Hindi in Devanagari, Tamil in Tamil), but the *answer body* is only translated when a free Bhashini API key is set. Without one it stays in English rather than being faked. Set `BHASHINI_API_KEY` in `.env` to turn it on.
 - **The knowledge-graph view is a stub.** There's a page planned that shows how a formulation connects to a law to a registry as a visual graph (Neo4j). Right now it only returns made-up example data and isn't linked to any button in the app yet.
 - **The 23 documents are summaries, not full statutes.** Each file condenses the provisions that matter for Ayurveda, so the assistant cites the right section and links to the official source, but cannot quote deep sub-clauses. Only two landmark cases are included, not a full case-law database. Adding documents is a manual step (see "Adding more law documents" below).
 - **Without a database, retrieval is keyword-based, not semantic.** The offline path matches on words, so a question phrased with terms that appear in no statute may score low and the assistant will abstain rather than guess. Running `make up` (Postgres + pgvector) enables true semantic search over the same corpus. Abstaining is the intended failure mode here, but it does mean the offline path refuses some questions it could answer with a database.
@@ -111,7 +111,7 @@ This was left alone on purpose. Tuning the ranking further would have meant over
 
 ### Suggested next steps, roughly in order of value
 
-1. **Get a free Bhashini API key** and set `BHASHINI_API_KEY` in `.env`. This is the largest visible gap: voice and translation are fully coded but currently show `[Bhashini mock en->hi]` placeholders. For an "AI for Bharat" pitch this is the single highest-impact hour of work available.
+1. **Get a free Bhashini API key** and set `BHASHINI_API_KEY` in `.env`. The interface is already multilingual, but answer bodies stay English until a key is present. For an "AI for Bharat" pitch this is the single highest-impact hour of work available.
 2. **Run `make up` before demoing** if you have Docker. It starts Postgres with pgvector and switches retrieval from keyword matching to true semantic search over the same corpus, which meaningfully improves answers on loosely-phrased questions.
 3. **Expand the thin corpus documents.** `ppvfr_act_2001.md`, `gi_act_1999.md` and similar are only a few lines each. Longer documents both retrieve more accurately and quote more usefully.
 4. **Wire up or delete the Neo4j graph.** `backend/app/rag/graph.py` returns mock data and nothing calls it. Either build the `Formulation to Category to Act to Registry` view the PS describes as a later stage, or remove it and the Neo4j container so `make up` stops starting a database nothing reads.

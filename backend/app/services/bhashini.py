@@ -63,10 +63,11 @@ async def translate(text: str, source_lang: str = "en", target_lang: str = "hi")
 
     s = get_settings()
     if not s.bhashini_api_key:
-        # offline mock — keeps demo runnable, signals missing key
-        out = f"[Bhashini mock {source_lang}->{target_lang}] {text}"
-        _CACHE[ck] = out
-        return out
+        # No key, so nothing was translated. Return the text untouched rather
+        # than prefixing "[Bhashini mock en->hi]", which put a debug string in
+        # the middle of the legal answer a user actually reads. The UI is
+        # already in their language; the answer body just stays English.
+        return text
 
     protected, placeholders = _protect_terms(text)
     payload = {
