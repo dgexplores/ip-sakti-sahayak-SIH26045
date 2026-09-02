@@ -24,7 +24,14 @@ IP_KEYWORDS: dict[IPType, re.Pattern] = {
 
 
 def classify_query(query: str, jurisdiction_hint: Jurisdiction | None = None) -> ClassifyResponse:
-    q = query.strip()
+    # Match on the bridged query. Every pattern below is English, so a question
+    # typed in Devanagari or Tamil always came back UNKNOWN, which then opened
+    # the out-of-scope branch in the chat route and abstained on questions the
+    # corpus answers. The interface invites those scripts, so the classifier
+    # has to read them.
+    from app.rag.retriever import bridge_query
+
+    q = bridge_query(query.strip())
     # jurisdiction: explicit toggle wins; else infer, but never silently conflate
     if jurisdiction_hint is not None:
         jurisdiction = jurisdiction_hint

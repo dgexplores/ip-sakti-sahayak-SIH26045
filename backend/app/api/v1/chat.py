@@ -63,6 +63,11 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
     if fw["status"] in ("leak_warning", "filtered"):
         retrieved = [c for c in retrieved if c.jurisdiction == jurisdiction.value] or retrieved
     # 6. Rerank (free-first: local CrossEncoder)
+    # Reranked on the original question, not the bridged one. Bridging appends
+    # keywords, and a bag of terms is good input for lexical matching but bad
+    # input for a cross-encoder trained on natural questions: feeding it the
+    # bridged form measurably moved two Hindi questions from a correct
+    # citation to a wrong one.
     ranked = await rerank(query, retrieved, top_k=settings.rerank_top_k)
     # 7. Formulation flow if needed
     formulation_result = None
@@ -84,8 +89,11 @@ async def chat(req: ChatRequest, request: Request) -> ChatResponse:
             is_out_of_scope = True
         # also if classifier says UNKNOWN + no formulation + no IP keyword + query short generic → likely out of scope
         if cls.ip_type.value == "unknown" and not cls.needs_formulation_flow and len(query.split()) < 8:
-            # check lexical overlap with top chunks < 0.15 → out of scope
-            q_terms = set(re.findall(r"\w+", query.lower()))
+            # Bridged, so an Indic-script question is compared on terms the
+            # English corpus can actually contain.
+            from app.rag.retriever import bridge_query
+
+            q_terms = set(re.findall(r"\w+", bridge_query(query).lower()))
             top_text = " ".join(c.text.lower() for c in ranked[:2])
             top_terms = set(re.findall(r"\w+", top_text))
             overlap = len(q_terms & top_terms) / max(1, len(q_terms))

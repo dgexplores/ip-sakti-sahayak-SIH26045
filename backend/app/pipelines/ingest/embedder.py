@@ -18,6 +18,22 @@ class Embedder(Protocol):
     async def embed(self, texts: list[str]) -> list[list[float]]: ...
 
 
+def _load_cached(cls, name, **kw):
+    """Load from the local cache first, and only reach the network if it misses.
+
+    sentence-transformers contacts huggingface.co on every load even when the
+    weights are already cached. On a slow or blocked connection that turned into
+    a long retry storm, and when it finally gave up the caller silently dropped
+    to a degraded path. That made start-up slow, results different between runs,
+    and the "runs offline" claim untrue. Trying the cache first makes a warm
+    start local, deterministic and fast, while a cold machine still downloads.
+    """
+    try:
+        return cls(name, local_files_only=True, **kw)
+    except Exception:
+        return cls(name, **kw)
+
+
 class OpenAIEmbedder:
     dim = 1536
 
@@ -58,7 +74,7 @@ class LocalEmbedder:
             self.dim = 384
             return
         try:
-            self.model = SentenceTransformer(model_name)
+            self.model = _load_cached(SentenceTransformer, model_name)
             self.dim = self.model.get_sentence_embedding_dimension() or 384
             self.model_name = model_name
         except Exception:

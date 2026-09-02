@@ -177,10 +177,96 @@ def _offline_index() -> list[RetrievedChunk]:
     return _OFFLINE_INDEX
 
 
-def _chunk_terms(c: RetrievedChunk) -> set[str]:
+def _tokens(text: str) -> set[str]:
+    """Lowercase word tokens, with a trailing plural stripped.
+
+    Statute titles are plural ("Patents Act", "Designs Act") while people ask
+    in the singular ("can I patent this"). Without folding the two, an exact
+    match on "patent" missed the Patents Act title entirely and the Act tied
+    with every other document that merely mentions the word. Applied to both
+    sides, so the comparison stays symmetric.
+    """
     import re
 
-    return set(re.findall(r"\w+", f"{c.doc_title} {c.text}".lower()))
+    out = set()
+    for t in re.findall(r"\w+", text.lower()):
+        out.add(t)
+        if len(t) > 3 and t.endswith("s") and not t.endswith("ss"):
+            out.add(t[:-1])
+    return out
+
+
+def _chunk_terms(c: RetrievedChunk) -> set[str]:
+    return _tokens(f"{c.doc_title} {c.text}")
+
+
+def _title_terms(c: RetrievedChunk) -> set[str]:
+    return _tokens(c.doc_title)
+
+
+# Standard field boosting: a term in the document title is much stronger
+# evidence than the same term in the body. A document titled "Patents Act" is
+# *about* patents, whereas the Designs Act only mentions the word to say a
+# formulation's recipe falls outside it. Those neighbouring-concept sentences
+# are what a corpus needs to disambiguate itself for a reader, and they are
+# exactly what misleads a body-only match, so the title has to outweigh them.
+_TITLE_BOOST = 2.5
+
+
+# Devanagari and Tamil domain words mapped to the English the corpus is written
+# in. The interface is in the reader's script, so they type in it, but the
+# statutes are English: without this bridge a Hindi question scored near zero
+# against every document and the assistant abstained on questions it holds the
+# answer to. Terms are appended, never substituted, so a mixed-script question
+# still matches on whatever English it already contains.
+_TERM_BRIDGE = {
+    # Hindi
+    "पेटेंट": "patent", "पेटेन्ट": "patent",
+    "नुस्खा": "formulation recipe", "नुस्खे": "formulation recipe",
+    "दवा": "drug medicine", "दवाई": "drug medicine",
+    "चूर्ण": "churna", "अश्वगंधा": "ashwagandha",
+    "कानून": "law act", "कानूनी": "legal",
+    "पौधा": "plant", "पौधे": "plant", "जड़ी": "herb",
+    "अनुमति": "approval permission", "मंज़ूरी": "approval permission",
+    "मंजूरी": "approval permission",
+    "ट्रेडमार्क": "trademark", "ब्रांड": "brand trademark",
+    "कॉपीराइट": "copyright", "किताब": "book text",
+    "डिज़ाइन": "design", "डिजाइन": "design", "पैकेजिंग": "packaging",
+    "पुराना": "classical traditional", "पुराने": "classical traditional",
+    "पुरानी": "classical traditional",
+    "नया": "novel new", "नई": "novel new", "नये": "novel new",
+    "बेचना": "sell", "बेच": "sell", "निर्यात": "export",
+    "विदेश": "international foreign", "भारत": "india",
+    "आहार": "food aahar", "खाद्य": "food",
+    "कॉस्मेटिक": "cosmetic", "सौंदर्य": "cosmetic",
+    "जैव": "biological", "विविधता": "diversity",
+    "गुप्त": "secret confidential", "रहस्य": "secret",
+    "किसान": "farmer", "बीज": "seed variety",
+    # Tamil
+    "பேட்டன்ட்": "patent", "காப்புரிமை": "patent",
+    "மருந்து": "formulation medicine", "சூரணம்": "churna",
+    "சட்டம்": "law act", "தாவரம்": "plant", "மூலிகை": "herb",
+    "அனுமதி": "approval permission",
+    "வர்த்தக": "trademark", "முத்திரை": "trademark",
+    "பதிப்புரிமை": "copyright", "புத்தகம்": "book text",
+    "வடிவமைப்பு": "design", "பேக்கேஜிங்": "packaging",
+    "பழைய": "classical traditional", "புதிய": "novel new",
+    "விற்க": "sell", "ஏற்றுமதி": "export",
+    "வெளிநாடு": "international foreign", "இந்தியா": "india",
+    "உணவு": "food", "அழகுசாதன": "cosmetic",
+    "ரகசிய": "secret confidential", "விதை": "seed variety",
+}
+
+
+def bridge_query(query: str) -> str:
+    """Append English equivalents for Indic domain words found in the query.
+
+    A keyword bridge, not translation. It is enough to retrieve the right
+    statute, which is what the corpus can answer with. Real translation arrives
+    with a Bhashini key and replaces this.
+    """
+    extra = [en for indic, en in _TERM_BRIDGE.items() if indic in query]
+    return f"{query} {' '.join(extra)}" if extra else query
 
 
 def _idf() -> dict[str, float]:
@@ -229,24 +315,35 @@ def _mock_chunks(
     # Drop function words before scoring. Leaving them in dilutes the overlap
     # ratio, so "Can I copyright my Ayurveda textbook?" scored barely above an
     # unrelated chunk and the confidence gate then abstained on a correct hit.
-    q_terms = set(re.findall(r"\w+", query.lower())) - _STOPWORDS
+    # Drop tokens the corpus cannot possibly contain. The statutes are English,
+    # so leaving the original Devanagari or Tamil words in the denominator made
+    # 71% of a Hindi question's weight dead, and every answer fell under the
+    # confidence gate even when the right statute was retrieved first.
+    q_terms = {t for t in _tokens(bridge_query(query)) - _STOPWORDS if t.isascii()}
     if not q_terms:
         return list(pool[:top_k])
 
     idf = _idf()
     weights = {t: idf.get(t, 1.0) for t in q_terms}
-    total = sum(weights.values()) or 1.0
 
-    def _overlap(c: RetrievedChunk) -> float:
+    def _raw(c: RetrievedChunk) -> float:
         hit = q_terms & _chunk_terms(c)
-        return sum(weights[t] for t in hit) / total
+        base = sum(weights[t] for t in hit)
+        in_title = sum(weights[t] for t in (q_terms & _title_terms(c)))
+        return base + _TITLE_BOOST * in_title
 
-    scored = sorted(((_overlap(c), c) for c in pool), key=lambda t: t[0], reverse=True)
-    # Map overlap onto the same 0.65-0.95 band real vector scores occupy, so the
-    # shared confidence and rerank logic reads it correctly on either path.
+    # Normalise against the best score this query could possibly achieve, not
+    # against the best match in this pool. retrieve_all merges five separate
+    # retriever pools and sorts the union, so a pool-relative score is not
+    # comparable across them: the top hit of a sparse pool would tie with the
+    # top hit of a rich one at 0.95 and the merge order became arbitrary. An
+    # absolute denominator also removes the earlier need to clamp at 1.0, which
+    # was itself collapsing distinct matches onto an identical score.
+    ceiling = sum(weights.values()) * (1.0 + _TITLE_BOOST) or 1.0
+    scored = sorted(((_raw(c), c) for c in pool), key=lambda t: t[0], reverse=True)
     return [
-        RetrievedChunk(**{**c.__dict__, "score": round(min(0.95, 0.62 + ov * 0.33), 3)})
-        for ov, c in scored[:top_k]
+        RetrievedChunk(**{**c.__dict__, "score": round(0.62 + (raw / ceiling) * 0.33, 3)})
+        for raw, c in scored[:top_k]
     ]
 
 

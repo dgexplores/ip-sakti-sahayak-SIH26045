@@ -18,7 +18,11 @@ def _get_cross_encoder():  # type: ignore[no-untyped-def]
         from sentence_transformers import CrossEncoder  # type: ignore[import]
 
         # ms-marco-MiniLM is MIT, 80MB, best free reranker for legal retrieval
-        _RERANKER = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", max_length=512)
+        from app.pipelines.ingest.embedder import _load_cached
+
+        _RERANKER = _load_cached(
+            CrossEncoder, "cross-encoder/ms-marco-MiniLM-L-6-v2", max_length=512
+        )
         return _RERANKER
     except Exception:
         _RERANKER_FAILED = True
