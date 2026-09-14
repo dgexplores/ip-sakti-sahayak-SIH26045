@@ -79,5 +79,22 @@ body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, s
 /* Focus visible — always */
 :focus-visible { outline: 2px solid #0B2239; outline-offset: 2px; }
 
+/* Skip link — hidden until keyboard focus */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 50;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 160ms var(--ease-out);
+}
+.skip-link:focus-visible { top: 1rem; }
+
 /* Citation highlight */
 .cite-mark { @apply bg-amber-100 text-amber-900 px-1 py-0.5 rounded text-xs font-medium; }

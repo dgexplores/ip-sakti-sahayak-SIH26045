@@ -85,7 +85,7 @@ export default function Page() {
         <div className="mx-auto max-w-[1180px] px-4 sm:px-6 pb-3 flex flex-wrap items-center gap-3">
           <JurisdictionToggle value={jurisdiction} onChange={setJurisdiction} lang={lang} />
           <span
-            className={`ml-auto text-[11px] font-mono px-2 py-1 rounded-full border ${
+            className={`ml-auto text-[11px] font-mono tabular-nums px-2 py-1 rounded-full border ${
               corpusError ? "bg-red-50 border-red-200 text-red-800" : "bg-stone-50 border-stone-200 text-stone-600"
             }`}
           >
@@ -98,11 +98,11 @@ export default function Page() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1180px] px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 items-start">
+      <main id="main" className="mx-auto max-w-[1180px] px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 items-start">
         <div className="space-y-5 min-w-0">
           {!res && (
             <div className="stagger-in">
-              <h1 className="h-display text-[26px] sm:text-[32px] font-extrabold leading-[1.15] tracking-tight">
+              <h1 className="h-display text-balance text-[26px] sm:text-[32px] font-extrabold leading-[1.15] tracking-tight">
                 {s.headline}{" "}
                 <span className={jurisdiction === "india" ? "text-saffron-dark" : "text-indiaBlue"}>{s.headlineAccent}</span>
               </h1>
@@ -298,6 +298,17 @@ export default function Page() {
           </div>
         </aside>
       </main>
+
+      <footer className="mx-auto max-w-[1180px] px-4 sm:px-6 pb-8">
+        <div className="rounded-2xl border border-stone-200 bg-white px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs text-stone-600">
+          <span className="font-bold text-stone-800">IP-SAKTI Sahayak</span>
+          <span className="leading-relaxed">Citation-grounded guidance, not legal advice. Verify against official sources.</span>
+          <span className="sm:ml-auto flex items-center gap-4 font-bold">
+            <a href="/privacy" className="hover:text-ink underline-offset-2 hover:underline">Privacy</a>
+            <a href="/terms" className="hover:text-ink underline-offset-2 hover:underline">Terms</a>
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
