@@ -6,6 +6,25 @@ A free assistant that answers Ayurveda IP and legal questions, with a real law q
 
 Ask something like "Can I patent my grandmother's churna recipe?" and it tells you the actual law (India or International, never mixed up), quotes the exact line, links to the government source, and says how sure it is. If it is not sure, it tells you to talk to a human instead of guessing.
 
+## Repo map (new here? start here)
+
+```
+backend/app/        FastAPI service — api/ routes, rag/ retrieval+generation,
+                    pipelines/ ingest, services/ LLM/Bhashini, models/ schemas
+backend/app/tests/  pytest suite (76 passing) — run with `make test`
+frontend/app/       Next.js pages — page.tsx (ask flow), privacy/, terms/,
+                    not-found.tsx, icon.svg, loading.tsx, error.tsx
+frontend/components/ UI blocks — answer render, citations, triage, voice, badges
+frontend/lib/       api.ts (backend client), i18n.ts (en/hi/ta strings)
+corpus/             23 law summaries + manifest.json (public-domain govt text)
+eval/golden_set.json  retrieval quality questions for `make eval`
+scripts/            check.sh / robust_check.sh / demo.sh — scripted health checks
+Makefile            every command below — `make up`, `make test`, `make eval`
+```
+
+Follow the request path: `frontend/lib/api.ts` → `POST /api/v1/chat` →
+`backend/app/api/` → `backend/app/rag/` (retrieve → firewall → generate → score).
+
 ---
 
 ## What we have (working today)
@@ -63,7 +82,14 @@ None of these block the demo. The core promise, real quoted law with links and a
 
 ## Project status and handoff notes
 
-Last updated 2026-09-01. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+Last updated 2026-09-14. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+
+### What changed in the most recent pass (2026-09-10)
+
+Answer tone rework (`backend/app/rag/generator.py` only, no retrieval changes).
+Answers now read human: verdict first, then what it means, then next steps —
+still stitched from quoted corpus lines, so no new hallucination surface.
+Nothing else moved; retrieval, firewall, and scoring untouched.
 
 ### Verified working (checked end to end, not assumed)
 
@@ -144,6 +170,18 @@ Then open:
 - http://localhost:3000 for the app
 - http://localhost:8000/docs for the API
 - http://localhost:7474 for the (currently unused) Neo4j graph browser
+
+### New here? 60-second health check
+
+```bash
+make test         # backend suite — expect 76 passed, 0 failed
+make ingest-dry   # corpus preview — expect 23 docs, no changes made
+```
+
+Then ask one question in the UI ("Can I patent my grandmother's churna recipe?")
+and confirm: an answer with quotes, source links, a confidence score, and a corpus hash.
+If the header badge reads "backend offline", the frontend is talking to the wrong
+server — see "Port 8000 may be occupied" below.
 
 ### Adding more law documents
 ```bash
