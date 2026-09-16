@@ -1,3 +1,12 @@
+# Development stack.
+#
+# This file bind-mounts the source and runs the dev servers, so `--reload` and
+# `npm run dev` are deliberate here, not leftovers. It is the "make up" path,
+# and it is what you want for a demo or while editing.
+#
+# Every service below is one the running app actually queries. Redis is behind
+# the `cache` profile because nothing reads it yet:
+#   docker compose --profile cache up
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -16,6 +25,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    profiles: ["cache"]
     ports:
       - "6379:6379"
 
@@ -27,21 +37,12 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
-  neo4j:
-    image: neo4j:5.21-community
-    environment:
-      NEO4J_AUTH: neo4j/sakti-graph-2026
-      NEO4J_PLUGINS: '["apoc"]'
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - neo4j_data:/data
-
   backend:
     build: ./backend
     ports:
       - "8000:8000"
+    # Optional: `make up` creates .env from .env.example if it is missing, so a
+    # fresh clone does not fail here with "env file .env not found".
     env_file: .env
     volumes:
       - ./backend:/app
@@ -49,8 +50,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
@@ -70,4 +69,3 @@ services:
 volumes:
   pgdata:
   qdrant_data:
-  neo4j_data:

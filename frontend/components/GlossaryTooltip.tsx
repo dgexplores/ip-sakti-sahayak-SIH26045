@@ -1,33 +1,32 @@
 "use client";
 import { useState } from "react";
+import { glossary, GLOSSARY_TERMS } from "@/lib/i18n";
 
-const GLOSSARY: Record<string, string> = {
-  "Sec 3(p)": "Patents Act bar: traditional knowledge = not patentable. Copy-paste from old book → no patent.",
-  "TKDL": "Traditional Knowledge Digital Library — govt DB that blocks foreign patents by proving prior art.",
-  "ABS": "Access & Benefit Sharing — you used Indian plant/knowledge? Share benefits, get NBA/SBB permission.",
-  "BDA": "Biological Diversity Act 2023 — law for using Indian biological resources.",
-  "NBA": "National Biodiversity Authority — approves foreign use of Indian plants.",
-  "SBB": "State Biodiversity Board — approve/intimate for Indian users.",
-  "GRATK": "WIPO treaty 2024 — disclose where genetic resource / TK came from in patent filing.",
-  "PCT": "Patent Cooperation Treaty — one filing to go international.",
-  "Classical": "Recipe exactly as in old texts (First Schedule) — Sec 3(p) bar applies.",
-  "Proprietary": "Changed ratio/process/dose from classical — may be patentable.",
-  "Phytopharmaceutical": "Purified plant drug with 4+ markers — CDSCO pathway.",
-};
+/** Legal-term tooltips.
+ *
+ * The definitions live in `lib/i18n.ts` alongside every other UI string, so
+ * the language switch reaches them too. They used to be English-only prose
+ * hardcoded here, which quietly falsified the multilingual claim.
+ *
+ * The term keys stay in Latin script on purpose — a reader has to be able to
+ * match "Sec 3(p)" or "TKDL" against the official record, and the answer
+ * text prints those tokens verbatim.
+ */
+const GLOSSARY_RE = new RegExp(
+  `(${GLOSSARY_TERMS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
+  "g"
+);
 
-// Longest term first, so "Sec 3(p)" doesn't get shadowed by a shorter overlapping key.
-const GLOSSARY_TERMS = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
-const GLOSSARY_RE = new RegExp(`(${GLOSSARY_TERMS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
-
-export function GlossaryText({ children }: { children: string }) {
+export function GlossaryText({ children, lang = "en" }: { children: string; lang?: string }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const dict = glossary(lang);
   const parts = children.split(GLOSSARY_RE);
   if (parts.length === 1) return <span>{children}</span>;
 
   return (
     <span>
       {parts.map((part, i) => {
-        const term = GLOSSARY[part];
+        const term = dict[part];
         if (!term) return <span key={i}>{part}</span>;
         const key = `${part}-${i}`;
         return (
@@ -52,13 +51,20 @@ export function GlossaryText({ children }: { children: string }) {
   );
 }
 
-export function GlossaryBar() {
-  const top = ["Sec 3(p)", "TKDL", "ABS", "GRATK", "PCT"] as const;
+/** The five terms worth surfacing before a reader has asked anything. */
+const TOP_TERMS = ["Sec 3(p)", "TKDL", "ABS", "GRATK", "PCT"] as const;
+
+export function GlossaryBar({ lang = "en" }: { lang?: string }) {
+  const dict = glossary(lang);
   return (
     <div className="flex flex-wrap gap-1.5">
-      {top.map((k) => (
-        <span key={k} className="text-[11px] px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 font-medium" title={GLOSSARY[k]}>
-          {k}: {GLOSSARY[k].slice(0, 44)}…
+      {TOP_TERMS.map((k) => (
+        <span
+          key={k}
+          className="text-[11px] px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 font-medium"
+          title={dict[k]}
+        >
+          {k}: {dict[k].slice(0, 44)}…
         </span>
       ))}
     </div>

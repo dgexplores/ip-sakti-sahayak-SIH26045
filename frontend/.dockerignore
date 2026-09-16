@@ -1,0 +1,10 @@
+# Keep the build context to source. Without this, `COPY . .` copies a host
+# node_modules over the one `npm ci` just installed, and a host .next over the
+# build output — the classic "works on my machine, different in the image".
+node_modules
+.next
+out
+dist
+npm-debug.log*
+.env.local
+.DS_Store

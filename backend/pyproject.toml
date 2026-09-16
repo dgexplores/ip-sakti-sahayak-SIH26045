@@ -12,8 +12,10 @@ dependencies = [
   "sqlalchemy==2.0.30",
   "psycopg[binary]==3.1.18",
   "pgvector==0.3.6",
+  # Declared for the stage-3 answer cache. Nothing imports it yet, and the
+  # container it talks to sits behind the `cache` compose profile, so the
+  # default `make up` does not start a database nothing reads.
   "redis==5.0.5",
-  "neo4j==5.22.0",
   "qdrant-client==1.9.0",
   # FREE RAG stack — zero paid API required
   "sentence-transformers==3.0.1",

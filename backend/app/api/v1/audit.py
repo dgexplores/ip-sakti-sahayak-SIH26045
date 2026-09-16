@@ -30,7 +30,22 @@ async def escalate(req: EscalateRequest) -> EscalateResponse:
 
 @router.get("/audit/{session_id}")
 async def get_audit(session_id: str) -> dict:
-    """Best-effort read of a session's audit trail. Returns empty when the DB is offline."""
+    """Session audit trail: what the system did, not what the user typed.
+
+    This used to return the raw `query` text. Session ids are supplied by the
+    client and there is no authentication, so any caller who knew or guessed an id
+    could read the questions another person had asked — the most identifying field
+    in the record, and a disclosure the privacy notice did not mention. The
+    endpoint now returns only the trace of the system's behaviour: which citations
+    were attached, at what confidence, against which corpus version.
+
+    The raw query is still written to `audit_logs`, because an escalation ticket
+    has to carry the question to the facilitator. It is simply not readable over
+    an unauthenticated route. Anything richer than this needs real session
+    authentication, which this demo does not have.
+
+    Best-effort read. Returns empty when the DB is offline.
+    """
     import anyio
 
     def _read() -> list[dict]:
@@ -43,23 +58,26 @@ async def get_audit(session_id: str) -> dict:
         with psycopg.connect(dsn) as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT event_id, query, jurisdiction, citation_ids, confidence, corpus_version, created_at "
+                    "SELECT event_id, jurisdiction, citation_ids, confidence, corpus_version, created_at "
                     "FROM audit_logs WHERE session_id=%s ORDER BY created_at DESC LIMIT 20",
                     (session_id,),
                 )
                 rows = cur.fetchall()
                 return [
                     {
-                        "event_id": r[0], "query": r[1], "jurisdiction": r[2],
-                        "citation_ids": json.loads(r[3] or "[]"), "confidence": r[4],
-                        "corpus_version": r[5], "created_at": str(r[6]),
+                        "event_id": r[0],
+                        "jurisdiction": r[1],
+                        "citation_ids": json.loads(r[2] or "[]"),
+                        "confidence": r[3],
+                        "corpus_version": r[4],
+                        "created_at": str(r[5]),
                     }
                     for r in rows
                 ]
 
     try:
         events = await anyio.to_thread.run_sync(_read)
-        return {"session_id": session_id, "events": events}
+        return {"session_id": session_id, "events": events, "query_text_included": False}
     except Exception as e:
         logger.warning("audit.read_failed", session_id=session_id, error=str(e))
         return {"session_id": session_id, "events": [], "note": "audit trail unavailable right now"}

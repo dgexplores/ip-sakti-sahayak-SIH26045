@@ -7,6 +7,8 @@ Divya Pharmacy, an Indian Ayurvedic manufacturer, was served a demand by the Utt
 
 The Court rejected that reading and dismissed the petition. It held that biological resources are national property, that an Indian entity is equally subject to fair and equitable benefit sharing, and that State Biodiversity Boards have the regulatory power to levy it. Benefit sharing with local and indigenous communities was treated as integral to the Act's conservation purpose, not an incident of foreign ownership.
 
+<!-- editorial -->
 Implication for Ayurveda:
 - Being a fully Indian company is not a defence to an ABS demand. An Indian Ayurveda manufacturer sourcing Indian biological resources for commercial use owes benefit sharing and should intimate the State Biodiversity Board.
 - This is the direct authority behind the ABS posture applied to classical and proprietary formulations elsewhere in this corpus (see `bda_2023.md`).
+<!-- /editorial -->

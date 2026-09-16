@@ -38,6 +38,26 @@ export type ChatResponse = {
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/** A transport failure and a rejected request are different situations and the
+ *  reader needs different words for them.
+ *
+ *  This used to throw a hardcoded English string ("Can't reach the server.
+ *  Check the backend is running (`make up`).") which the page then printed
+ *  verbatim, so the localised `errorHint` never appeared and a Tamil reader
+ *  got an English sentence containing a shell command. Callers can now tell
+ *  the two apart and render their own language.
+ */
+export class ApiError extends Error {
+  readonly code: "network" | "http";
+  readonly status?: number;
+  constructor(message: string, code: "network" | "http", status?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
 /** Shared fetch wrapper: surfaces backend `{error:{message}}` bodies as real Error messages
  * instead of letting callers hit an opaque JSON-parse failure or silently-wrong data. */
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -45,7 +65,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     res = await fetch(`${API}${path}`, init);
   } catch {
-    throw new Error("Can't reach the server. Check the backend is running (`make up`).");
+    throw new ApiError("network unreachable", "network");
   }
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
@@ -55,7 +75,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // response wasn't JSON, keep the generic status message
     }
-    throw new Error(message);
+    throw new ApiError(message, "http", res.status);
   }
   return res.json() as Promise<T>;
 }

@@ -1,58 +1,183 @@
 {
+  "_readme": [
+    "Golden set for `make eval`. Every case is executed through the real /api/v1/chat",
+    "route and graded on the response — nothing here is graded against its own prose.",
+    "",
+    "expect_top_doc is the document the FIRST citation must come from. It is the sharpest",
+    "signal available offline: the original defect was a patent question whose first",
+    "citation was the Trade Marks Act, because that document contains the word 'recipe'.",
+    "",
+    "Out-of-scope cases exist so abstention accuracy can fall below 1.0. The previous set",
+    "had a single should_abstain case out of six, so the metric could barely move."
+  ],
   "cases": [
     {
-      "query": "Is classical Ashwagandha churna as per Charaka Samhita patentable in India?",
-      "expected_jurisdiction": "india",
-      "expected_ip_type": "patent",
+      "id": "flagship-churna",
+      "query": "Can I patent my grandmother's churna recipe?",
+      "jurisdiction": "india",
       "should_abstain": false,
-      "contexts": ["An invention which, in effect, is traditional knowledge or an aggregation or duplication of known properties of traditionally known component(s) — is not patentable. Sec 3(p) Patents Act"],
-      "answer": "No. Under Sec 3(p) Patents Act, a formulation verbatim from a classical text is traditional knowledge and not patentable. TKDL may be cited as prior art. [Patents Act, 1970 — Sec 3(p)]",
-      "citations": [{"locator": "Sec 3(p) — p.4"}]
+      "expected_ip_type": "patent",
+      "expect_top_doc": "patents_act_1970",
+      "note": "The README's own demo question. It abstained at confidence 24.7 before the recalibration."
     },
     {
-      "query": "I made a novel Ashwagandha extract with 10x withanolide by new process — can I patent it?",
-      "expected_jurisdiction": "india",
-      "expected_ip_type": "patent",
+      "id": "patentable-formulation",
+      "query": "Is my Ayurvedic formulation patentable?",
+      "jurisdiction": "india",
       "should_abstain": false,
-      "contexts": ["Proprietary with novel process/dosage is patentable if novelty+inventive step satisfied", "Biological resource access requires NBA/SBB benefit-sharing"],
-      "answer": "Yes, if novel and inventive. File patent + disclose TK origin under WIPO GRATK Art 3 and comply with BDA Sec 7 ABS via SBB/NBA.",
-      "citations": [{"locator": "Sec 3(p)"}, {"locator": "BDA Sec 7"}]
+      "expected_ip_type": "patent",
+      "expect_top_doc": "patents_act_1970",
+      "note": "'patentable' matched no keyword before the suffix fix, so this classified as UNKNOWN."
     },
     {
-      "query": "WIPO GRATK disclosure requirement for PCT filing with Indian genetic resource",
-      "expected_jurisdiction": "international",
-      "expected_ip_type": "patent",
+      "id": "novel-extract",
+      "query": "I made a novel Ashwagandha extract with 10x withanolide by a new process — can I patent it?",
+      "jurisdiction": "india",
       "should_abstain": false,
-      "contexts": ["Where the claimed invention is based on genetic resources, each Contracting Party shall require applicants to disclose the country of origin — Art 3.1 WIPO GRATK 2024"],
-      "answer": "Under Art 3 GRATK 2024, disclose country of origin/source of genetic resource and associated TK. Attach PIC/MAT from NBA.",
-      "citations": [{"locator": "Art 3 — p.2"}]
+      "expected_ip_type": "patent",
+      "expect_top_doc": "patents_act_1970"
     },
     {
+      "id": "trademark-brand",
+      "query": "How do I register a trademark for my brand name?",
+      "jurisdiction": "india",
+      "should_abstain": false,
+      "expected_ip_type": "trademark",
+      "expect_top_doc": "trade_marks_act_1999"
+    },
+    {
+      "id": "copyright-textbook",
+      "query": "Can I copyright my Ayurveda textbook and its compilation?",
+      "jurisdiction": "india",
+      "should_abstain": false,
+      "expected_ip_type": "copyright",
+      "expect_top_doc": "copyright_act_1957",
+      "note": "Returned the trademark verdict before, because the Trade Marks Act was among the retrieved spans."
+    },
+    {
+      "id": "trade-secret-recipe",
+      "query": "How do I protect my family recipe as a trade secret?",
+      "jurisdiction": "india",
+      "should_abstain": false,
+      "expected_ip_type": "trade_secret",
+      "expect_top_doc": "trade_secrets_india",
+      "note": "Returned the FSSAI food/drug verdict before."
+    },
+    {
+      "id": "design-packaging",
+      "query": "Can I register the design of my churna bottle and carton packaging?",
+      "jurisdiction": "india",
+      "should_abstain": false,
+      "expected_ip_type": "design",
+      "expect_top_doc": "designs_act_2000"
+    },
+    {
+      "id": "gi-tag",
+      "query": "Can I get a GI tag for my regional rice variety?",
+      "jurisdiction": "india",
+      "should_abstain": false,
+      "expected_ip_type": "gi",
+      "expect_top_doc_any": ["gi_act_1999", "inpass_gi_registry_guide"],
+      "note": "Either is a correct lead: the GI Act defines the right, the InPASS guide says how to file. The registry guide currently leads on title match."
+    },
+    {
+      "id": "abs-aloe-export",
       "query": "Do I need NBA approval to export aloe vera sourced in Kerala for cosmetic manufacture?",
-      "expected_jurisdiction": "india",
+      "jurisdiction": "india",
+      "should_abstain": false,
       "expected_ip_type": "abs",
-      "should_abstain": false,
-      "contexts": ["Access to biological resources for commercial utilization requires prior intimation to SBB / approval of NBA"],
-      "answer": "Yes — ABS applies. Indian entity: intimate SBB before commercial access; if foreign buyer, NBA approval + benefit-sharing under BDA Sec 7/21.",
-      "citations": [{"locator": "Sec 7 — p.12"}]
+      "expect_top_doc": "bda_2023"
     },
     {
-      "query": "Can I sell chyawanprash as food under FSSAI Ayurveda Aahar or as drug?",
-      "expected_jurisdiction": "india",
+      "id": "fssai-aahar",
+      "query": "What documents does FSSAI need to sell chyawanprash as Ayurveda Aahar?",
+      "jurisdiction": "india",
+      "should_abstain": false,
       "expected_ip_type": "regulatory",
-      "should_abstain": false,
-      "contexts": ["Ayurveda Aahar means food recipes described in authoritative Ayurveda texts, with claim restrictions"],
-      "answer": "If recipe is in authoritative text and consumed as food → FSSAI Aahar (Reg 3(1), 2022). If therapeutic dosage/claim → AYUSH drug license. Magic Remedies Act bars cure-all claims.",
-      "citations": [{"locator": "Reg 3(1)"}]
+      "expect_top_doc": "fssai_aahar_2022"
     },
     {
-      "query": "Random unrelated: write a poem about mango",
-      "expected_jurisdiction": "india",
-      "expected_ip_type": "unknown",
+      "id": "gratk-disclosure",
+      "query": "What is the WIPO GRATK disclosure requirement when filing with an Indian genetic resource?",
+      "jurisdiction": "international",
+      "should_abstain": false,
+      "expected_ip_type": "patent",
+      "expect_top_doc": "wipo_gratk_2024"
+    },
+    {
+      "id": "pct-filing",
+      "query": "How do I file a PCT application for my formulation?",
+      "jurisdiction": "international",
+      "should_abstain": false,
+      "expected_ip_type": "patent",
+      "expect_top_doc": "pct_system",
+      "note": "Matched no IP keyword before PCT was added to the patent pattern, and returned the GRATK verdict."
+    },
+    {
+      "id": "nagoya-benefit-sharing",
+      "query": "What does the Nagoya Protocol require for benefit sharing?",
+      "jurisdiction": "international",
+      "should_abstain": false,
+      "expected_ip_type": "abs",
+      "expect_top_doc": "cbd_nagoya"
+    },
+    {
+      "id": "hindi-patent",
+      "query": "क्या मैं अपने पुराने नुस्खे का पेटेंट करा सकता हूँ?",
+      "jurisdiction": "india",
+      "should_abstain": false,
+      "expected_ip_type": "patent",
+      "expect_top_doc": "patents_act_1970",
+      "note": "Indic script. Without the term bridge this scored near zero against every document and abstained."
+    },
+
+    {
+      "id": "oos-capital-of-france",
+      "query": "What is the capital of France?",
+      "jurisdiction": "india",
       "should_abstain": true,
-      "contexts": [],
-      "answer": "I don't have a grounded answer for this query in the india corpus (confidence 12/100).",
-      "citations": []
+      "expected_ip_type": "unknown",
+      "expect_top_doc": null
+    },
+    {
+      "id": "oos-poem",
+      "query": "Write me a poem about mangoes.",
+      "jurisdiction": "india",
+      "should_abstain": true,
+      "expected_ip_type": "unknown",
+      "expect_top_doc": null
+    },
+    {
+      "id": "oos-keyboard-mash",
+      "query": "asdfgh qwerty zxcvb",
+      "jurisdiction": "india",
+      "should_abstain": true,
+      "expected_ip_type": "unknown",
+      "expect_top_doc": null
+    },
+    {
+      "id": "oos-sports",
+      "query": "Who won the 1998 football world cup final?",
+      "jurisdiction": "india",
+      "should_abstain": true,
+      "expected_ip_type": "unknown",
+      "expect_top_doc": null
+    },
+    {
+      "id": "oos-weather",
+      "query": "What will the weather be like in Paris tomorrow?",
+      "jurisdiction": "india",
+      "should_abstain": true,
+      "expected_ip_type": "unknown",
+      "expect_top_doc": null
+    },
+    {
+      "id": "oos-international-nonsense",
+      "query": "Recommend a good pizza restaurant near me.",
+      "jurisdiction": "international",
+      "should_abstain": true,
+      "expected_ip_type": "unknown",
+      "expect_top_doc": null
     }
   ]
 }

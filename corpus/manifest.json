@@ -1,6 +1,6 @@
 {
   "corpus_version": "sakti-v0.1.0",
-  "updated": "2026-08-29",
+  "updated": "2026-09-14",
   "jurisdiction_note": "Each document has explicit jurisdiction + effective_date. Never conflated at query time.",
   "documents": [
     {
@@ -11,7 +11,8 @@
       "effective_date": "2024-03-15",
       "file": "sources/patents_act_1970.md",
       "deep_link": "https://ipindia.gov.in/writereaddata/portal/ev/sections/ps3.html",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "patents_rules_2024",
@@ -21,17 +22,19 @@
       "effective_date": "2024-03-15",
       "file": "sources/patents_rules_2024.md",
       "deep_link": "https://ipindia.gov.in/writereaddata/portal/ev/rules/pr110.pdf",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "bda_2023",
-      "title": "Biological Diversity Act, 2023 + Rules 2024 — ABS, NBA/SBB/BMC, benefit-sharing",
+      "title": "Biological Diversity (Amendment) Act, 2023 + Rules 2024 — ABS, NBA/SBB/BMC, benefit-sharing",
       "source_type": "statute",
       "jurisdiction": "india",
       "effective_date": "2024-04-10",
       "file": "sources/bda_2023.md",
       "deep_link": "https://nbaindia.org/uploaded/BiodiversityDocuments/BDA_2023.pdf",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "gi_act_1999",
@@ -41,7 +44,8 @@
       "effective_date": "2003-09-15",
       "file": "sources/gi_act_1999.md",
       "deep_link": "https://ipindia.gov.in/writereaddata/portal/ev/rules/gir110.pdf",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "trade_marks_act_1999",
@@ -51,7 +55,8 @@
       "effective_date": "2003-09-15",
       "file": "sources/trade_marks_act_1999.md",
       "deep_link": "https://ipindia.gov.in/tm-act-1999",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "designs_act_2000",
@@ -61,7 +66,8 @@
       "effective_date": "2001-05-11",
       "file": "sources/designs_act_2000.md",
       "deep_link": "https://ipindia.gov.in/the-designs-act-2000",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "ppvfr_act_2001",
@@ -71,7 +77,8 @@
       "effective_date": "2005-10-26",
       "file": "sources/ppvfr_act_2001.md",
       "deep_link": "https://plantauthority.gov.in/ppv-fr-act",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "drugs_cosmetics_act",
@@ -81,7 +88,8 @@
       "effective_date": "2023-08-01",
       "file": "sources/drugs_cosmetics_act.md",
       "deep_link": "https://cdsco.gov.in/opencms/opencms/en/Acts-and-rules/",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "fssai_aahar_2022",
@@ -91,7 +99,8 @@
       "effective_date": "2022-05-05",
       "file": "sources/fssai_aahar_2022.md",
       "deep_link": "https://fssai.gov.in/cms/food-safety-and-standards-regulations.php",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "magic_remedies_act",
@@ -101,7 +110,8 @@
       "effective_date": "1954-01-01",
       "file": "sources/magic_remedies_act.md",
       "deep_link": "https://www.indiacode.nic.in/handle/123456789/1770",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "copyright_act_1957",
@@ -111,7 +121,8 @@
       "effective_date": "2012-06-07",
       "file": "sources/copyright_act_1957.md",
       "deep_link": "https://copyright.gov.in/documents/copyrightrules1957.pdf",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "trade_secrets_india",
@@ -121,7 +132,8 @@
       "effective_date": "1872-04-25",
       "file": "sources/trade_secrets_india.md",
       "deep_link": "https://www.indiacode.nic.in/handle/123456789/2187",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "case_law_india",
@@ -131,7 +143,8 @@
       "effective_date": "2018-12-21",
       "file": "sources/case_law_india.md",
       "deep_link": "https://www.casemine.com/search/in?q=Divya+Pharmacy+v.+Union+of+India",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "exact"
     },
     {
       "doc_id": "tkdl_guidelines",
@@ -141,7 +154,8 @@
       "effective_date": "2023-01-01",
       "file": "sources/tkdl_guidelines.md",
       "deep_link": "https://www.tkdl.res.in/tkdl/langdefault/common/AboutTKDL.asp",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "wipo_gratk_2024",
@@ -151,7 +165,8 @@
       "effective_date": "2024-05-24",
       "file": "sources/wipo_gratk_2024.md",
       "deep_link": "https://www.wipo.int/treaties/en/text-gratk",
-      "license": "public-domain"
+      "license": "public-domain",
+      "date_precision": "exact"
     },
     {
       "doc_id": "pct_system",
@@ -161,7 +176,8 @@
       "effective_date": "2024-01-01",
       "file": "sources/pct_system.md",
       "deep_link": "https://www.wipo.int/pct/en/",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "madrid_hague_budapest",
@@ -171,7 +187,8 @@
       "effective_date": "2024-01-01",
       "file": "sources/madrid_hague_budapest.md",
       "deep_link": "https://www.wipo.int/treaties/",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "cbd_nagoya",
@@ -181,7 +198,8 @@
       "effective_date": "2014-10-12",
       "file": "sources/cbd_nagoya.md",
       "deep_link": "https://www.cbd.int/abs/",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "exact"
     },
     {
       "doc_id": "case_law_international",
@@ -191,7 +209,8 @@
       "effective_date": "2005-03-08",
       "file": "sources/case_law_international.md",
       "deep_link": "https://patents.google.com/patent/EP0436257B1/en",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "export_market_access",
@@ -201,7 +220,8 @@
       "effective_date": "2011-04-30",
       "file": "sources/export_market_access.md",
       "deep_link": "https://eur-lex.europa.eu/eli/dir/2004/24/oj/eng",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "exact"
     },
     {
       "doc_id": "trips_agreement",
@@ -211,7 +231,8 @@
       "effective_date": "1995-01-01",
       "file": "sources/trips_agreement.md",
       "deep_link": "https://www.wto.org/english/docs_e/legal_e/27-trips_01_e.htm",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "exact"
     },
     {
       "doc_id": "ayurveda_pharmacopoeia",
@@ -221,7 +242,8 @@
       "effective_date": "2022-01-01",
       "file": "sources/ayurveda_pharmacopoeia.md",
       "deep_link": "https://www.ayush.gov.in/ayurvedic-pharmacopoeia-of-india.html",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "approximate"
     },
     {
       "doc_id": "inpass_gi_registry_guide",
@@ -231,7 +253,9 @@
       "effective_date": "2024-01-01",
       "file": "sources/inpass_gi_registry_guide.md",
       "deep_link": "https://ipindia.gov.in/inpass.htm",
-      "license": "public-domain-summary"
+      "license": "public-domain-summary",
+      "date_precision": "approximate"
     }
-  ]
+  ],
+  "note_on_dates": "effective_date is the date the provision or summary was last checked unless date_precision is 'exact'. Multi-treaty notes (pct_system, madrid_hague_budapest) and rolling registries have no single commencement date."
 }

@@ -7,9 +7,15 @@ import re
 import httpx
 
 from app.core.config import get_settings
+from app.core.errors import UpstreamError
 
-# legal terms that must never be translated
+# Terms that must never be translated. URLs and the backticked version hash are on
+# the list because the answer body is markdown that the reader is meant to act on:
+# a translated "Verify at source" link is a broken link, and a mangled
+# `version_hash` no longer identifies the span the answer was drawn from.
 PRESERVE_TERMS = [
+    r"https?://[^\s)\]]+",  # before the generic terms — it must win the alternation
+    r"`[^`]+`",  # code span: the version hash
     r"Sec\s*3\(p\)",
     r"Section\s+\d+[A-Za-z\(\)]*",
     r"Article\s+\d+",
@@ -98,10 +104,24 @@ async def translate(text: str, source_lang: str = "en", target_lang: str = "hi")
 
 
 async def asr(audio_base64: str, language: str = "hi") -> str:
-    """ASR via Bhashini — mock fallback."""
+    """ASR via Bhashini. Raises when it cannot transcribe.
+
+    This used to return the hardcoded string "[ASR mock] अश्वगंधा चूर्ण पेटेंट योग्य
+    है?" whenever no API key was configured. The caller treated any non-empty
+    return as a successful transcript and replaced the user's typed query with it,
+    so uploading audio silently answered a *different question* — one about
+    ashwagandha — and presented it as the reader's own. A mock that invents the
+    user's words is worse than a visible failure, so this now raises and the chat
+    route falls back to the typed query and logs the failure.
+    """
     s = get_settings()
-    if not s.bhashini_api_key or not audio_base64:
-        return "[ASR mock] अश्वगंधा चूर्ण पेटेंट योग्य है?"
+    if not s.bhashini_api_key:
+        raise UpstreamError(
+            "Speech recognition is unavailable: no Bhashini API key is configured.",
+            details={"service": "bhashini", "task": "asr"},
+        )
+    if not audio_base64:
+        raise UpstreamError("No audio content was supplied.", details={"service": "bhashini", "task": "asr"})
     # real pipelineTasks: asr
     payload = {
         "pipelineTasks": [{"taskType": "asr", "config": {"language": {"sourceLanguage": language}}}],
@@ -112,7 +132,13 @@ async def asr(audio_base64: str, language: str = "hi") -> str:
         resp = await client.post(s.bhashini_inference_url, json=payload, headers=headers)
         resp.raise_for_status()
         data = resp.json()
-        return data.get("pipelineResponse", [{}])[0].get("output", [{}])[0].get("source", "")
+        transcript = data.get("pipelineResponse", [{}])[0].get("output", [{}])[0].get("source", "")
+        if not transcript:
+            raise UpstreamError(
+                "Speech recognition returned an empty transcript.",
+                details={"service": "bhashini", "task": "asr"},
+            )
+        return transcript
 
 
 async def tts(text: str, language: str = "hi") -> str:

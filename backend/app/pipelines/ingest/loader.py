@@ -4,12 +4,31 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
+import re
 from dataclasses import dataclass
 
 try:
     from pypdf import PdfReader  # type: ignore[import]
 except Exception:
     PdfReader = None  # type: ignore[assignment,misc]
+
+# Author commentary, source URLs and version stamps live in the corpus files next
+# to the statute text, fenced off from it. Everything inside the fence is
+# editorial: useful to a human reading the file, wrong to quote as law.
+_EDITORIAL_RE = re.compile(r"<!--\s*editorial\s*-->.*?<!--\s*/editorial\s*-->", re.DOTALL | re.IGNORECASE)
+
+
+def strip_editorial(text: str) -> str:
+    """Remove fenced editorial blocks from a corpus document.
+
+    Before this, the whole file was indexed and quotable, so a retrieved span
+    could surface the author's commentary, a source URL or a version stamp as
+    though it were the statute. The highest-ranked "quote" produced for the
+    flagship demo question was a URL followed by a fabricated version hash,
+    presented inside a styled blockquote as the law. Stripping the fence keeps
+    the corpus, the index and the quotes to the law itself.
+    """
+    return _EDITORIAL_RE.sub("", text)
 
 
 @dataclass(frozen=True)
@@ -43,7 +62,7 @@ def load_pdf(path: pathlib.Path) -> str:
 
 
 def load_markdown(path: pathlib.Path) -> str:
-    return path.read_text(encoding="utf-8")
+    return strip_editorial(path.read_text(encoding="utf-8"))
 
 
 def load_json(path: pathlib.Path) -> str:

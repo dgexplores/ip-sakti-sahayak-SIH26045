@@ -1,3 +1,5 @@
+import pytest
+
 from app.rag.classifier import classify_query
 from app.models.schemas import Jurisdiction, IPType
 
@@ -41,3 +43,52 @@ def test_every_ip_type_is_routable():
     }
     for expected, query in cases.items():
         assert classify_query(query).ip_type == expected, query
+
+
+@pytest.mark.parametrize(
+    "query,expected",
+    [
+        # A trailing \b after the stem rejected every inflected form, so the most
+        # natural phrasing of the flagship question classified as UNKNOWN, which
+        # the chat route reads as an out-of-scope signal.
+        ("Is my Ayurvedic formulation patentable?", IPType.PATENT),
+        ("Is this patented already?", IPType.PATENT),
+        ("How do patents work in India?", IPType.PATENT),
+        ("How do I file a PCT application?", IPType.PATENT),
+        ("Can I register several trademarks?", IPType.TRADEMARK),
+        ("Do I need a licence to sell this?", IPType.REGULATORY),
+    ],
+)
+def test_classifier_matches_inflected_forms(query, expected):
+    assert classify_query(query).ip_type == expected, query
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "What is the capital of France?",
+        "Who won the 1998 world cup?",
+        "asdfgh qwerty zxcvb",
+    ],
+)
+def test_classifier_says_unknown_rather_than_guessing(query):
+    """An unmatched question must be UNKNOWN, not the first keyword in the list."""
+    assert classify_query(query).ip_type == IPType.UNKNOWN
+
+
+def test_classifier_reports_the_regimes_the_question_text_points_at():
+    """`inferred_jurisdiction` ignores the toggle on purpose.
+
+    The chat route compares it against the toggle to detect a mismatch. Passing
+    the toggle in as a hint used to make the classifier echo it back, so the
+    comparison was false by construction and could never fire.
+    """
+    r = classify_query("What is the WIPO GRATK disclosure requirement?", Jurisdiction.INDIA)
+    assert r.jurisdiction == Jurisdiction.INDIA  # we answer for the toggle
+    assert r.inferred_jurisdiction == Jurisdiction.INTERNATIONAL  # the words say otherwise
+    assert r.inferred_jurisdiction_confidence >= 0.85
+
+    r2 = classify_query("Is classical churna patentable?", Jurisdiction.INTERNATIONAL)
+    assert r2.jurisdiction == Jurisdiction.INTERNATIONAL
+    assert r2.inferred_jurisdiction == Jurisdiction.INDIA
+

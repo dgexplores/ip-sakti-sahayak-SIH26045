@@ -9,7 +9,7 @@ import pytest
 
 from app.models.schemas import IPType, Jurisdiction
 from app.rag.classifier import classify_query
-from app.rag.retriever import _mock_chunks, bridge_query
+from app.rag.retriever import _offline_search, bridge_query
 
 
 @pytest.mark.parametrize(
@@ -47,7 +47,7 @@ def test_classifier_reads_indic_scripts(query, expected):
 
 
 def test_indic_question_retrieves_the_right_statute():
-    hits = _mock_chunks(Jurisdiction.INDIA, None, 3, "क्या मैं अपनी किताब कॉपीराइट करा सकता हूँ?")
+    hits = _offline_search(Jurisdiction.INDIA, None, 3, "क्या मैं अपनी किताब कॉपीराइट करा सकता हूँ?")
     assert hits and hits[0].doc_id == "copyright_act_1957"
 
 
@@ -55,5 +55,5 @@ def test_title_match_outranks_a_passing_body_mention():
     """The Designs Act says a formulation's recipe falls *outside* it, which is
     a body mention of "patent". A document titled "Patents Act" is about the
     word in a way that mention is not."""
-    hits = _mock_chunks(Jurisdiction.INDIA, None, 1, "patent")
+    hits = _offline_search(Jurisdiction.INDIA, None, 1, "patent")
     assert hits[0].doc_id == "patents_act_1970"

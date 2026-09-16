@@ -1,4 +1,13 @@
-"""Audit logger — DPDP-aligned, structured, pseudonymized."""
+"""Audit logger — structured trace of what the system did, with the query kept for escalation.
+
+A note on what "DPDP-aligned" does and does not mean here. The docstring used to
+say "pseudonymized", which was not true of this file: `query` is stored verbatim
+(capped at 500 characters) because an escalation ticket has to carry the question
+to the facilitator who will answer it. The pseudonymisation lives one level up —
+`ConsentRecord` hashes the data principal, and the read route returns the trace
+without the query text. Storing a free-text question is not anonymous, so the
+privacy notice says so rather than implying otherwise.
+"""
 from __future__ import annotations
 
 import json
@@ -11,6 +20,9 @@ from app.core.config import get_settings
 from app.models.schemas import AuditEvent, Jurisdiction
 
 logger = structlog.get_logger("audit")
+
+# Free-text questions are personal data. Bound what is retained.
+_QUERY_RETENTION_CHARS = 500
 
 
 class AuditLogger:
@@ -30,7 +42,7 @@ class AuditLogger:
         event = AuditEvent(
             event_id=f"evt_{uuid.uuid4().hex[:12]}",
             session_id=session_id,
-            query=query[:500],
+            query=query[:_QUERY_RETENTION_CHARS],
             jurisdiction=jurisdiction,
             citations=citation_ids,
             confidence=confidence,
@@ -39,7 +51,8 @@ class AuditLogger:
             created_at=datetime.now(timezone.utc),
             paid_db_accessed=paid_db_accessed,
         )
-        # structured log (always)
+        # structured log (always) — deliberately without the query text, so the
+        # log stream is not a second copy of it
         logger.info(
             "audit.chat",
             event_id=event.event_id,

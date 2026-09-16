@@ -1,7 +1,8 @@
 """Reranker — FREE-FIRST: local CrossEncoder, zero API cost. Cohere only if key present."""
 from __future__ import annotations
 
-from app.rag.retriever import RetrievedChunk
+from app.models.schemas import IPType
+from app.rag.retriever import IP_TYPE_DOCS, RetrievedChunk
 
 # Lazy singleton — loads ~80MB cross-encoder once, CPU-friendly
 _RERANKER = None
@@ -27,6 +28,39 @@ def _get_cross_encoder():  # type: ignore[no-untyped-def]
     except Exception:
         _RERANKER_FAILED = True
         return None
+
+
+def order_by_ip_type(chunks: list[RetrievedChunk], ip_type: IPType | None) -> list[RetrievedChunk]:
+    """Present the law that answers the question first — a stable partition, not a re-score.
+
+    Both the retriever and this reranker rank on lexical overlap, and lexical
+    overlap answers "which text uses the question's words", not "which text answers
+    the question". The two diverge badly on this corpus. For "Can I patent my
+    grandmother's churna recipe?" the Trade Marks Act ranked first, because it
+    contains the word "recipe" in a sentence about classical product names, while
+    the provision that actually decides the question — Sec 3(p) of the Patents Act —
+    shares no content word with the query at all and scored a third of its
+    relevance. The answer then led with trademark law on a patent question.
+
+    The classifier already knows the question is about patents, so its documents
+    are moved to the front. Nothing is dropped and no score is altered: off-type
+    spans keep their relative order immediately behind the on-type ones, so a
+    question that genuinely spans two regimes still shows both — it just no longer
+    leads with the one that was asked about second.
+
+    Confidence is computed before this runs, on the score-ordered list, so
+    reordering the presentation cannot flatter or deflate the score.
+    """
+    if ip_type is None or ip_type == IPType.UNKNOWN:
+        return list(chunks)
+    preferred = IP_TYPE_DOCS.get(ip_type.value, frozenset())
+    if not preferred:
+        return list(chunks)
+    on_type = [c for c in chunks if c.doc_id in preferred]
+    off_type = [c for c in chunks if c.doc_id not in preferred]
+    # `on_type` empty means the classifier's documents were not retrieved at all;
+    # returning off_type alone preserves the original order.
+    return on_type + off_type
 
 
 async def rerank(query: str, chunks: list[RetrievedChunk], top_k: int = 8) -> list[RetrievedChunk]:
@@ -81,29 +115,51 @@ def _blend(chunks: list[RetrievedChunk], ce_scores: list[float], top_k: int) -> 
     patentable", promoting the Plant Varieties Act because that text happens to
     mention Ashwagandha. Blending keeps the reranker's semantic judgement
     without letting it discard a strong retrieval signal.
+
+    The CrossEncoder's score is squashed to 0..1 absolutely, not min-max
+    normalised within the candidate set. Min-max normalisation was the bug: it
+    guarantees the best candidate always lands at the top of the range no matter
+    how bad it is, so a page of entirely irrelevant chunks still produced a
+    confident-looking score. Eleven identical zero-match chunks blended to a
+    top relevance of 0.785 and a confidence of 59/100. ms-marco is reasonably
+    calibrated in absolute terms — strongly negative logits for unrelated text,
+    positive for relevant — so an absolute squash preserves that signal and lets
+    a bad candidate set score badly, which is the whole point of having a
+    confidence gate.
     """
-    lo, hi = min(ce_scores), max(ce_scores)
-    span = (hi - lo) or 1.0
+    import math
+
     blended: list[tuple[float, RetrievedChunk]] = []
     for c, raw in zip(chunks, ce_scores):
-        ce_norm = (raw - lo) / span  # 0..1 within this candidate set
-        score = round(0.5 * c.score + 0.5 * (0.65 + ce_norm * 0.30), 4)
+        ce_abs = 1.0 / (1.0 + math.exp(-max(-30.0, min(30.0, float(raw)))))
+        score = round(0.5 * c.score + 0.5 * ce_abs, 4)
         blended.append((score, c))
     blended.sort(key=lambda t: t[0], reverse=True)
     return [RetrievedChunk(**{**c.__dict__, "score": s}) for s, c in blended[:top_k]]
 
 
 def _lexical_rerank(query: str, chunks: list[RetrievedChunk], top_k: int) -> list[RetrievedChunk]:
-    """BM25-inspired lexical bonus — free, no model, penalizes off-topic."""
+    """BM25-inspired lexical bonus — free, no model, penalizes off-topic.
+
+    Writes the combined score back onto each chunk, for the same reason
+    `_blend` does: returning a reordered list whose chunks still carry their
+    pre-rerank scores leaves the list unsorted by its own `score` field, and
+    `compute_confidence` reads `chunks[0].score`. The weights sum to 1.0 so the
+    result stays inside the 0..1 range the confidence mapping assumes — the
+    previous pair summed to 1.3 and could print "Top score 1.27" at the user.
+    """
     import re
-    import math
 
     q_terms = set(re.findall(r"\w+", query.lower()))
-    # simple idf: log(N / df) approximated as 1 for MVP
-    def _score(c: RetrievedChunk) -> float:
-        c_terms = re.findall(r"\w+", c.text.lower())
-        overlap = len(q_terms & set(c_terms))
-        # lexical 0-1 + 0.7*vector score
-        return (overlap / max(1, len(q_terms))) * 0.6 + c.score * 0.7
+    if not q_terms:
+        return sorted(chunks, key=lambda c: c.score, reverse=True)[:top_k]
 
-    return sorted(chunks, key=_score, reverse=True)[:top_k]
+    def _score(c: RetrievedChunk) -> float:
+        c_terms = set(re.findall(r"\w+", c.text.lower()))
+        overlap = len(q_terms & c_terms) / len(q_terms)
+        # the retriever's absolute relevance stays dominant; lexical overlap
+        # only breaks ties between candidates it already considers comparable
+        return 0.75 * c.score + 0.25 * overlap
+
+    scored = sorted(((_score(c), c) for c in chunks), key=lambda t: t[0], reverse=True)
+    return [RetrievedChunk(**{**c.__dict__, "score": round(s, 4)}) for s, c in scored[:top_k]]

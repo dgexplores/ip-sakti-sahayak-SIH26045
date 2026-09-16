@@ -10,8 +10,28 @@ import { VoiceButton } from "@/components/VoiceButton";
 import { SplitViewTrigger } from "@/components/SplitView";
 import { Icon, type IconName } from "@/components/Icon";
 import { AnswerText } from "@/components/AnswerText";
-import { LANGS, EXAMPLES, t } from "@/lib/i18n";
-import { chat, getCorpusVersion, type ChatResponse, type FormulationAnswer, type Jurisdiction } from "@/lib/api";
+import { GlossaryBar } from "@/components/GlossaryTooltip";
+import { LANGS, EXAMPLES, t, readStoredLang, storeLang } from "@/lib/i18n";
+import { chat, getCorpusVersion, ApiError, type ChatResponse, type FormulationAnswer, type Jurisdiction } from "@/lib/api";
+
+/** Session id for the audit trail.
+ *
+ * `Math.random()` is not a source of uniqueness — it is seeded per engine and
+ * yields roughly 41 bits here. Two visitors whose ids collide share an audit
+ * trail, which is the one place a session id has to be dependable. `randomUUID`
+ * is available in every browser this app targets and in Node 19+.
+ */
+function newSessionId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `sess_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    return `sess_${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
+  }
+  // Last resort for a non-secure context. Weaker, but at least documented.
+  return `sess_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export default function Page() {
   const [jurisdiction, setJurisdiction] = useState<Jurisdiction>("india");
@@ -22,7 +42,7 @@ export default function Page() {
   const [res, setRes] = useState<ChatResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [corpus, setCorpus] = useState<{ corpus_version: string; document_count: number } | null>(null);
-  const [sessionId] = useState(() => `sess_${Math.random().toString(36).slice(2, 10)}`);
+  const [sessionId] = useState(newSessionId);
   // Closed by default. It used to open on arrival, so a first-time visitor met
   // three questions and six category buttons before the thing they came to do.
   const [showTriage, setShowTriage] = useState(false);
@@ -36,6 +56,18 @@ export default function Page() {
     getCorpusVersion().then(setCorpus).catch(() => setCorpusError(true));
   }, []);
 
+  // Read after mount, not during render: the server has no storage, so
+  // seeding state from it would break hydration.
+  useEffect(() => {
+    const stored = readStoredLang();
+    if (stored) setLang(stored);
+  }, []);
+
+  function chooseLang(id: string) {
+    setLang(id);
+    storeLang(id);
+  }
+
   async function onSend(q?: string, form?: FormulationAnswer) {
     const text = (q ?? query).trim();
     if (!text) return;
@@ -47,7 +79,10 @@ export default function Page() {
       setShowTriage(false);
       setTimeout(() => answerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
     } catch (e) {
-      setError(e instanceof Error ? e.message : s.errorHint);
+      // A transport failure gets the localised hint; a rejection from the
+      // backend carries its own message, which is English (the corpus and the
+      // API are English) and is shown as-is rather than swallowed.
+      setError(e instanceof ApiError && e.code === "network" ? s.errorHint : e instanceof Error ? e.message : s.errorHint);
     } finally {
       setLoading(false);
     }
@@ -69,7 +104,7 @@ export default function Page() {
             {LANGS.map((l) => (
               <button
                 key={l.id}
-                onClick={() => setLang(l.id)}
+                onClick={() => chooseLang(l.id)}
                 aria-pressed={lang === l.id}
                 title={l.english}
                 className={`px-3 py-1.5 rounded-full text-sm font-bold transition-colors ${
@@ -242,7 +277,7 @@ export default function Page() {
                   </div>
                 )}
 
-                <div className="text-[17px] leading-7 text-ink"><AnswerText>{res.answer}</AnswerText></div>
+                <div className="text-[17px] leading-7 text-ink"><AnswerText lang={lang}>{res.answer}</AnswerText></div>
 
                 {res.answer_simple && (
                   <div className="mt-5 rounded-2xl bg-amber-50 border-2 border-amber-200 p-4">
@@ -250,7 +285,7 @@ export default function Page() {
                       <Icon name="simple" className="w-3.5 h-3.5" />
                       {s.simpleHeading}
                     </div>
-                    <div className="text-[15px] leading-7 mt-2 text-amber-950"><AnswerText>{res.answer_simple}</AnswerText></div>
+                    <div className="text-[15px] leading-7 mt-2 text-amber-950"><AnswerText lang={lang}>{res.answer_simple}</AnswerText></div>
                   </div>
                 )}
 
@@ -274,7 +309,7 @@ export default function Page() {
 
                 <div className="mt-5 pt-4 border-t border-stone-200 flex flex-col sm:flex-row gap-2">
                   <div className="flex-1"><EscalateButton sessionId={sessionId} query={query} jurisdiction={jurisdiction} citations={res.citations} lang={lang} /></div>
-                  <ExportButton answer={res.answer} citations={res.citations} jurisdiction={jurisdiction} corpusVersion={res.corpus_version} lang={lang} />
+                  <ExportButton answer={res.answer} citations={res.citations} jurisdiction={jurisdiction} corpusVersion={res.corpus_version} confidence={res.confidence} lang={lang} />
                 </div>
 
                 <p className="mt-4 text-xs text-stone-600 leading-relaxed">{s.disclaimer}</p>
@@ -286,6 +321,16 @@ export default function Page() {
         <aside className="space-y-4 lg:sticky lg:top-[132px] min-w-0">
           <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-4">
             <CitationPane citations={res?.citations ?? []} corpusVersion={res?.corpus_version ?? corpus?.corpus_version} lang={lang} />
+          </div>
+
+          {/* Jargon buster. The tooltips also work inline in the answer, but a
+              first-time reader has no way to know that, so the five terms that
+              carry the whole legal argument are surfaced up front. */}
+          <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-4">
+            <div className="text-xs font-extrabold tracking-widest uppercase text-stone-500">{s.glossaryTitle}</div>
+            <div className="mt-2.5">
+              <GlossaryBar lang={lang} />
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs font-bold">
@@ -302,10 +347,10 @@ export default function Page() {
       <footer className="mx-auto max-w-[1180px] px-4 sm:px-6 pb-8">
         <div className="rounded-2xl border border-stone-200 bg-white px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs text-stone-600">
           <span className="font-bold text-stone-800">IP-SAKTI Sahayak</span>
-          <span className="leading-relaxed">Citation-grounded guidance, not legal advice. Verify against official sources.</span>
+          <span className="leading-relaxed">{s.footerNote}</span>
           <span className="sm:ml-auto flex items-center gap-4 font-bold">
-            <a href="/privacy" className="hover:text-ink underline-offset-2 hover:underline">Privacy</a>
-            <a href="/terms" className="hover:text-ink underline-offset-2 hover:underline">Terms</a>
+            <a href="/privacy" className="hover:text-ink underline-offset-2 hover:underline">{s.privacy}</a>
+            <a href="/terms" className="hover:text-ink underline-offset-2 hover:underline">{s.terms}</a>
           </span>
         </div>
       </footer>

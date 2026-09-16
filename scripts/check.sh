@@ -1,14 +1,23 @@
 #!/bin/bash
-set -e
+# Full local health check.
+#
+# This used to pipe long commands into `tail`, which replaced their exit status
+# with tail's — so a failing eval and a failing frontend build both printed a
+# green "ALL CHECKS PASSED". It also ran a hand-picked subset of the test files
+# (test_classifier, test_chunker, test_api) and called that the suite. It now
+# delegates to the Makefile, so there is one definition of "passing" and this
+# script cannot drift away from it.
+set -euo pipefail
 cd "$(dirname "$0")/.."
-echo "== chunker + classifier tests =="
-cd backend && python3 -m pytest app/tests/test_classifier.py app/tests/test_chunker.py -v
-echo "== api tests =="
-python3 -m pytest app/tests/test_api.py -v
-echo "== ingest dry-run =="
-python3 -m app.pipelines.ingest.cli --manifest ../corpus/manifest.json --dry-run | tail -20
-echo "== eval =="
-python3 -m app.eval.ragas_eval --golden ../eval/golden_set.json | tail -20
-echo "== frontend build =="
-cd ../frontend && npm run build | tail -20
+
+echo "== tests, eval, i18n parity, frontend syntax =="
+make check
+
+echo "== ingest dry-run (corpus must load) =="
+make ingest-dry
+
+echo "== frontend typecheck + production build =="
+make frontend-build
+
+echo
 echo "ALL CHECKS PASSED"

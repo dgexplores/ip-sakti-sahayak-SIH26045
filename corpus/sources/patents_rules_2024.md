@@ -6,4 +6,6 @@ Effective 15 Mar 2024. Key changes vs 2003:
 - Pre-grant representation handling streamlined.
 - Relevant to Ayurveda: faster prosecution helps perishable market windows; dosha-specific claims need careful Form 2 drafting.
 
+<!-- editorial -->
 Deep link: https://ipindia.gov.in/writereaddata/portal/ev/rules/pr110.pdf
+<!-- /editorial -->

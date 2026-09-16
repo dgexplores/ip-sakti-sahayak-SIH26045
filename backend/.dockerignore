@@ -1,0 +1,14 @@
+# Keep the build context to source. A host __pycache__ or .venv copied into
+# the image can shadow the installed package and produce import errors that
+# only appear in the container.
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.venv
+venv
+*.egg-info
+.env
+.DS_Store

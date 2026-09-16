@@ -1,12 +1,19 @@
 "use client";
-import type { Citation } from "@/lib/api";
+import type { Citation, Confidence } from "@/lib/api";
 import { Icon } from "@/components/Icon";
 import { t } from "@/lib/i18n";
 
-export function ExportButton({ answer, citations, jurisdiction, corpusVersion, lang = "en" }: { answer: string; citations: Citation[]; jurisdiction: string; corpusVersion: string; lang?: string }) {
+export function ExportButton({ answer, citations, jurisdiction, corpusVersion, confidence, lang = "en" }: { answer: string; citations: Citation[]; jurisdiction: string; corpusVersion: string; confidence?: Confidence | null; lang?: string }) {
   const s = t(lang);
   function onExport() {
-    const md = `# IP-SAKTI Sahayak — ${jurisdiction.toUpperCase()} Report\n\n**Corpus:** ${corpusVersion}\n**Jurisdiction:** ${jurisdiction}\n**Date:** ${new Date().toLocaleString()}\n\n---\n\n${answer}\n\n---\n\n## Citations\n${citations.map((c) => `- **${c.title}** — ${c.locator} — ${c.deep_link} — \`${c.version_hash}\`\n  > ${c.span_text.slice(0, 280)}`).join("\n")}\n\n---\nInformation only — not legal advice. Verify at source links before filing.\n`;
+    // The confidence line lives here rather than in the answer body: the body is
+    // shared with the on-screen view, which already renders a badge, a bar and
+    // the rationale, so printing it in the body showed the reader the same
+    // sentence twice. The exported report has no UI, so it needs it back.
+    const confLine = confidence
+      ? `**Confidence:** ${confidence.score.toFixed(0)}/100 — ${confidence.rationale}${confidence.abstain ? " (abstained)" : ""}\n\n`
+      : "";
+    const md = `# IP-SAKTI Sahayak — ${jurisdiction.toUpperCase()} Report\n\n**Corpus:** ${corpusVersion}\n**Jurisdiction:** ${jurisdiction}\n**Date:** ${new Date().toLocaleString()}\n\n---\n\n${answer}\n\n${confLine}---\n\n## Citations\n${citations.map((c) => `- **${c.title}** — ${c.locator} — ${c.deep_link} — \`${c.version_hash}\`\n  > ${c.span_text.slice(0, 280)}`).join("\n")}\n\n---\n${s.disclaimer}\n`;
     const blob = new Blob([md], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

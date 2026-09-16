@@ -6,5 +6,7 @@ Adopted 24 May 2024. Requires patent applicants whose invention is based on gene
 
 > Span: "Where the claimed invention is based on genetic resources, each Contracting Party shall require applicants to disclose the country of origin of the genetic resources... and associated traditional knowledge." — Art 3.1, WIPO GRATK 2024.
 
+<!-- editorial -->
 Trigger: if Ayurveda genetic resource + patent filing → disclosure + PIC/MAT evidence recommended.
 Link: https://www.wipo.int/treaties/en/text-gratk
+<!-- /editorial -->

@@ -33,6 +33,7 @@ type Strings = {
   speakHint: string;
   listening: string;
   listeningHint: string;
+  voiceUnsupported: string;
   or: string;
   placeholder: string;
   send: string;
@@ -45,6 +46,11 @@ type Strings = {
   closeTriage: string;
   answerIndia: string;
   answerWorld: string;
+  splitTitle: string;
+  splitHint: string;
+  splitRun: string;
+  splitLoading: string;
+  splitNoData: string;
   simpleHeading: string;
   proofTitle: string;
   proofEmpty: string;
@@ -55,6 +61,7 @@ type Strings = {
   escalateSending: string;
   escalateDone: string;
   escalateDoneBody: string;
+  escalateFailed: string;
   lowTrust: string;
   export: string;
   print: string;
@@ -70,6 +77,17 @@ type Strings = {
   loading: string;
   errorHint: string;
   disclaimer: string;
+  glossaryTitle: string;
+  footerNote: string;
+  privacy: string;
+  terms: string;
+  skipLink: string;
+  errTitle: string;
+  errBody: string;
+  errRetry: string;
+  nfTitle: string;
+  nfBody: string;
+  nfBack: string;
 };
 
 const en: Strings = {
@@ -87,6 +105,7 @@ const en: Strings = {
   speakHint: "Hindi, Tamil or English",
   listening: "Listening, tap to stop",
   listeningHint: "We can hear you",
+  voiceUnsupported: "This browser cannot take voice input. Please type your question below instead.",
   or: "or",
   placeholder: "Type your question here, in your own words",
   send: "Get the answer",
@@ -99,6 +118,11 @@ const en: Strings = {
   closeTriage: "Close",
   answerIndia: "India: the answer",
   answerWorld: "International: the answer",
+  splitTitle: "See the two laws separately — the problem statement's rule",
+  splitHint: "India and the World are never mixed. That separation is exactly what the problem statement asks us to prove.",
+  splitRun: "India vs World, side by side",
+  splitLoading: "Fetching both…",
+  splitNoData: "No data yet — press the button",
   simpleHeading: "In simple words",
   proofTitle: "Proof for every line",
   proofEmpty: "Your proof will appear here",
@@ -109,6 +133,7 @@ const en: Strings = {
   escalateSending: "Sending…",
   escalateDone: "Sent to an expert",
   escalateDoneBody: "Your question, the proof and the confidence score were all forwarded. Your data is kept safely under DPDP rules.",
+  escalateFailed: "Could not send this to an expert. Please try again in a moment.",
   lowTrust: "Confidence is low. Sending this to a human expert is the safer choice.",
   export: "Download report",
   print: "Print",
@@ -124,6 +149,17 @@ const en: Strings = {
   loading: "loading…",
   errorHint: "Could not reach the server. Is the backend running?",
   disclaimer: "Information only, not legal advice. Please check the source links before you file anything.",
+  glossaryTitle: "Words you will meet",
+  footerNote: "Citation-grounded guidance, not legal advice. Verify against the official sources.",
+  privacy: "Privacy",
+  terms: "Terms",
+  skipLink: "Skip to content",
+  errTitle: "Something went wrong",
+  errBody: "Something broke on this page. Your question and the answer trace are still safe — this is only a display error. Try again, or refresh if it keeps happening.",
+  errRetry: "Try again",
+  nfTitle: "Page not found",
+  nfBody: "The page you asked for does not exist, or it was moved.",
+  nfBack: "Back to Sahayak",
 };
 
 const hi: Strings = {
@@ -141,6 +177,7 @@ const hi: Strings = {
   speakHint: "हिन्दी, तमिल या अंग्रेज़ी",
   listening: "सुन रहे हैं, रोकने के लिए दबाइए",
   listeningHint: "हमें आपकी आवाज़ आ रही है",
+  voiceUnsupported: "यह ब्राउज़र आवाज़ नहीं ले सकता। नीचे अपना सवाल टाइप कीजिए।",
   or: "या",
   placeholder: "अपना सवाल यहाँ लिखिए, अपने ही शब्दों में",
   send: "जवाब पाइए",
@@ -153,6 +190,11 @@ const hi: Strings = {
   closeTriage: "बंद कीजिए",
   answerIndia: "भारत: आपका जवाब",
   answerWorld: "विदेश: आपका जवाब",
+  splitTitle: "दोनों कानून अलग-अलग देखिए — PS का नियम",
+  splitHint: "भारत और विदेश कभी नहीं मिलते। यही अलगाव problem statement साबित करने को कहता है।",
+  splitRun: "भारत बनाम विदेश, साथ-साथ",
+  splitLoading: "दोनों ला रहे हैं…",
+  splitNoData: "अभी कोई डेटा नहीं — बटन दबाइए",
   simpleHeading: "आसान शब्दों में",
   proofTitle: "हर लाइन का सबूत",
   proofEmpty: "आपका सबूत यहाँ दिखेगा",
@@ -163,6 +205,7 @@ const hi: Strings = {
   escalateSending: "भेजा जा रहा है…",
   escalateDone: "जानकार के पास भेज दिया",
   escalateDoneBody: "आपका सवाल, सबूत और भरोसे का स्कोर, सब भेज दिया गया है। आपकी जानकारी DPDP नियमों के तहत सुरक्षित है।",
+  escalateFailed: "यह जानकार के पास नहीं भेजा जा सका। थोड़ी देर बाद फिर कोशिश कीजिए।",
   lowTrust: "भरोसा कम है। इसे किसी जानकार के पास भेजना ज़्यादा सही रहेगा।",
   export: "रिपोर्ट डाउनलोड कीजिए",
   print: "प्रिंट कीजिए",
@@ -178,6 +221,17 @@ const hi: Strings = {
   loading: "लोड हो रहा है…",
   errorHint: "सर्वर से बात नहीं हो पाई। क्या backend चालू है?",
   disclaimer: "यह सिर्फ़ जानकारी है, कानूनी सलाह नहीं। फ़ाइल करने से पहले सरकारी लिंक ज़रूर देखिए।",
+  glossaryTitle: "ये शब्द आपको मिलेंगे",
+  footerNote: "हर जवाब असली कानून के हवाले से, कानूनी सलाह नहीं। सरकारी स्रोत से ज़रूर मिलाइए।",
+  privacy: "निजता",
+  terms: "शर्तें",
+  skipLink: "सीधे सामग्री पर जाइए",
+  errTitle: "कुछ गड़बड़ हो गई",
+  errBody: "इस पेज पर कुछ टूट गया। आपका सवाल और जवाब का रिकॉर्ड सुरक्षित है — यह सिर्फ़ दिखने की गड़बड़ है। फिर कोशिश कीजिए, और बार-बार हो तो पेज रीफ़्रेश कीजिए।",
+  errRetry: "फिर कोशिश कीजिए",
+  nfTitle: "यह पेज नहीं मिला",
+  nfBody: "आपने जो पेज माँगा है वह मौजूद नहीं है, या हटा दिया गया है।",
+  nfBack: "सहायक पर वापस जाइए",
 };
 
 const ta: Strings = {
@@ -195,6 +249,7 @@ const ta: Strings = {
   speakHint: "இந்தி, தமிழ் அல்லது ஆங்கிலம்",
   listening: "கேட்கிறோம், நிறுத்த அழுத்துங்கள்",
   listeningHint: "உங்கள் குரல் கேட்கிறது",
+  voiceUnsupported: "இந்த உலாவியில் குரல் உள்ளீடு இல்லை. கீழே உங்கள் கேள்வியை எழுதுங்கள்.",
   or: "அல்லது",
   placeholder: "உங்கள் கேள்வியை இங்கே எழுதுங்கள், உங்கள் சொந்த வார்த்தைகளில்",
   send: "பதிலைப் பெறுங்கள்",
@@ -207,6 +262,11 @@ const ta: Strings = {
   closeTriage: "மூடுங்கள்",
   answerIndia: "இந்தியா: உங்கள் பதில்",
   answerWorld: "வெளிநாடு: உங்கள் பதில்",
+  splitTitle: "இரு சட்டங்களையும் தனித்தனியாகப் பாருங்கள் — PS விதி",
+  splitHint: "இந்தியாவும் வெளிநாடும் ஒருபோதும் கலக்காது. அந்தப் பிரிவுதான் problem statement நிரூபிக்கச் சொல்வது.",
+  splitRun: "இந்தியா vs வெளிநாடு, பக்கவாட்டில்",
+  splitLoading: "இரண்டையும் கொண்டு வருகிறோம்…",
+  splitNoData: "இன்னும் தரவு இல்லை — பொத்தானை அழுத்துங்கள்",
   simpleHeading: "எளிய வார்த்தைகளில்",
   proofTitle: "ஒவ்வொரு வரிக்கும் ஆதாரம்",
   proofEmpty: "உங்கள் ஆதாரம் இங்கே தெரியும்",
@@ -217,6 +277,7 @@ const ta: Strings = {
   escalateSending: "அனுப்பப்படுகிறது…",
   escalateDone: "நிபுணரிடம் அனுப்பப்பட்டது",
   escalateDoneBody: "உங்கள் கேள்வி, ஆதாரம் மற்றும் நம்பிக்கை மதிப்பெண் அனைத்தும் அனுப்பப்பட்டன. உங்கள் தகவல் DPDP விதிகளின்படி பாதுகாப்பாக உள்ளது.",
+  escalateFailed: "இதை நிபுணரிடம் அனுப்ப முடியவில்லை. சிறிது நேரம் கழித்து மீண்டும் முயற்சி செய்யுங்கள்.",
   lowTrust: "நம்பிக்கை குறைவாக உள்ளது. இதை ஒரு நிபுணரிடம் அனுப்புவது பாதுகாப்பானது.",
   export: "அறிக்கையைப் பதிவிறக்கவும்",
   print: "அச்சிடவும்",
@@ -232,12 +293,52 @@ const ta: Strings = {
   loading: "ஏற்றப்படுகிறது…",
   errorHint: "சர்வரைத் தொடர்பு கொள்ள முடியவில்லை. backend இயங்குகிறதா?",
   disclaimer: "இது தகவல் மட்டுமே, சட்ட ஆலோசனை அல்ல. பதிவு செய்வதற்கு முன் அரசு இணைப்புகளைச் சரிபார்க்கவும்.",
+  glossaryTitle: "நீங்கள் சந்திக்கும் சொற்கள்",
+  footerNote: "மேற்கோள்களுடன் கூடிய வழிகாட்டல், சட்ட ஆலோசனை அல்ல. அரசு ஆதாரங்களுடன் சரிபார்க்கவும்.",
+  privacy: "தனியுரிமை",
+  terms: "விதிமுறைகள்",
+  skipLink: "உள்ளடக்கத்திற்குச் செல்லவும்",
+  errTitle: "ஏதோ தவறு நடந்தது",
+  errBody: "இந்தப் பக்கத்தில் ஏதோ உடைந்தது. உங்கள் கேள்வியும் பதிலின் பதிவும் பாதுகாப்பாக உள்ளன — இது காட்சிப் பிழை மட்டுமே. மீண்டும் முயற்சி செய்யுங்கள், தொடர்ந்தால் பக்கத்தைப் புதுப்பியுங்கள்.",
+  errRetry: "மீண்டும் முயற்சி செய்யுங்கள்",
+  nfTitle: "இந்தப் பக்கம் இல்லை",
+  nfBody: "நீங்கள் கேட்ட பக்கம் இல்லை, அல்லது அது நகர்த்தப்பட்டுவிட்டது.",
+  nfBack: "சகாயக்-க்குத் திரும்புங்கள்",
 };
 
 const DICT: Record<Lang, Strings> = { en, hi, ta };
 
 export function t(lang: string): Strings {
   return DICT[(lang as Lang)] ?? en;
+}
+
+/** The chosen language survives a reload.
+ *
+ * It used to live only in React state, so a Tamil reader who refreshed the
+ * page was silently dropped back into Hindi — on a product whose headline
+ * claim is that it speaks the reader's language. The error and 404 pages are
+ * separate render trees and cannot see that state at all, so they read this.
+ */
+const LANG_STORAGE_KEY = "ip-sakti-lang";
+
+export function readStoredLang(): Lang | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = window.localStorage.getItem(LANG_STORAGE_KEY);
+    return LANGS.some((l) => l.id === v) ? (v as Lang) : null;
+  } catch {
+    // Private browsing or storage blocked. Falling back is correct.
+    return null;
+  }
+}
+
+export function storeLang(lang: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LANG_STORAGE_KEY, lang);
+  } catch {
+    /* the choice simply will not persist; nothing to recover from */
+  }
 }
 
 /** Example questions, shown in the reader's own script.
@@ -345,3 +446,73 @@ const TRIAGE_DICT: Record<Lang, Triage> = {
 export function tri(lang: string): Triage {
   return TRIAGE_DICT[(lang as Lang)] ?? TRIAGE_DICT.en;
 }
+
+/** Glossary definitions, one per reader language.
+ *
+ * The *keys* stay in Latin script on purpose — a reader has to be able to
+ * match "Sec 3(p)" or "TKDL" against the official record, and the answer
+ * text renders those tokens verbatim. Only the explanation is translated.
+ * These used to live in `GlossaryTooltip.tsx` as English-only prose, so the
+ * language switch left every tooltip in English.
+ */
+const GLOSSARY_DICT: Record<Lang, Record<string, string>> = {
+  en: {
+    "Sec 3(p)": "Patents Act bar: traditional knowledge is not patentable. Copy-paste from an old book gets no patent.",
+    TKDL: "Traditional Knowledge Digital Library — a government database that blocks foreign patents by proving the knowledge was already public.",
+    ABS: "Access & Benefit Sharing — if you used an Indian plant or Indian knowledge, you must share the benefit and get NBA or SBB permission.",
+    BDA: "Biological Diversity Act 2023 — the law that governs use of India's biological resources.",
+    NBA: "National Biodiversity Authority — approves foreign use of Indian plants.",
+    SBB: "State Biodiversity Board — grants approval or receives intimation for Indian users.",
+    GRATK: "WIPO treaty 2024 — you must disclose where the genetic resource or traditional knowledge came from when you file.",
+    PCT: "Patent Cooperation Treaty — a single filing that starts the international route.",
+    Classical: "The recipe exactly as it stands in the old texts (First Schedule), so the Sec 3(p) bar applies.",
+    Proprietary: "The ratio, process or dose was changed from the classical form, so a patent may be possible.",
+    Phytopharmaceutical: "A purified plant-based drug with four or more markers — the CDSCO pathway.",
+  },
+  hi: {
+    "Sec 3(p)": "Patents Act की रोक: पारंपरिक ज्ञान का पेटेंट नहीं होता। पुरानी किताब से ज्यों-का-त्यों उतारा तो पेटेंट नहीं मिलेगा।",
+    TKDL: "Traditional Knowledge Digital Library — सरकारी डेटाबेस, जो यह साबित करके विदेशी पेटेंट रोकता है कि यह ज्ञान पहले से सबके सामने था।",
+    ABS: "Access & Benefit Sharing — भारतीय पौधा या भारतीय ज्ञान इस्तेमाल किया है तो लाभ बाँटना होगा और NBA या SBB की मंज़ूरी लेनी होगी।",
+    BDA: "Biological Diversity Act 2023 — भारत के जैविक संसाधनों के इस्तेमाल का कानून।",
+    NBA: "National Biodiversity Authority — भारतीय पौधों के विदेशी इस्तेमाल को मंज़ूरी देती है।",
+    SBB: "State Biodiversity Board — भारतीय उपयोगकर्ताओं को मंज़ूरी देता है या सूचना लेता है।",
+    GRATK: "WIPO संधि 2024 — फ़ाइल करते समय बताना होगा कि जैविक संसाधन या पारंपरिक ज्ञान कहाँ से आया।",
+    PCT: "Patent Cooperation Treaty — एक ही फ़ाइलिंग से अंतरराष्ट्रीय रास्ता शुरू होता है।",
+    Classical: "नुस्खा पुरानी किताबों (First Schedule) में जैसा है वैसा ही, इसलिए Sec 3(p) की रोक लगेगी।",
+    Proprietary: "क्लासिकल रूप से अनुपात, प्रक्रिया या मात्रा बदली गई है, इसलिए पेटेंट हो सकता है।",
+    Phytopharmaceutical: "चार या ज़्यादा मार्कर वाली शुद्ध पौधे से बनी दवा — CDSCO का रास्ता।",
+  },
+  ta: {
+    "Sec 3(p)": "Patents Act தடை: பாரம்பரிய அறிவுக்குப் பேட்டன்ட் கிடையாது. பழைய நூலிலிருந்து அப்படியே எடுத்தால் பேட்டன்ட் கிடைக்காது.",
+    TKDL: "Traditional Knowledge Digital Library — இந்த அறிவு முன்பே பொதுவில் இருந்தது என நிரூபித்து வெளிநாட்டுப் பேட்டன்ட்களைத் தடுக்கும் அரசு தரவுத்தளம்.",
+    ABS: "Access & Benefit Sharing — இந்திய தாவரத்தையோ இந்திய அறிவையோ பயன்படுத்தினால் பயனைப் பங்கிட வேண்டும், NBA அல்லது SBB அனுமதி பெற வேண்டும்.",
+    BDA: "Biological Diversity Act 2023 — இந்தியாவின் உயிரியல் வளங்களைப் பயன்படுத்துவதை நிர்வகிக்கும் சட்டம்.",
+    NBA: "National Biodiversity Authority — இந்திய தாவரங்களின் வெளிநாட்டுப் பயன்பாட்டுக்கு அனுமதி அளிக்கிறது.",
+    SBB: "State Biodiversity Board — இந்திய பயனர்களுக்கு அனுமதி அளிக்கிறது அல்லது தகவலைப் பெறுகிறது.",
+    GRATK: "WIPO ஒப்பந்தம் 2024 — தாக்கல் செய்யும்போது உயிரியல் வளம் அல்லது பாரம்பரிய அறிவு எங்கிருந்து வந்தது எனத் தெரிவிக்க வேண்டும்.",
+    PCT: "Patent Cooperation Treaty — ஒரே தாக்கலில் சர்வதேச வழி தொடங்குகிறது.",
+    Classical: "பழைய நூல்களில் (First Schedule) உள்ளபடியே உள்ள மருந்து, எனவே Sec 3(p) தடை பொருந்தும்.",
+    Proprietary: "பாரம்பரிய வடிவத்திலிருந்து விகிதம், முறை அல்லது அளவு மாற்றப்பட்டுள்ளது, எனவே பேட்டன்ட் கிடைக்கலாம்.",
+    Phytopharmaceutical: "நான்கு அல்லது அதற்கு மேற்பட்ட மார்க்கர் கொண்ட தூய தாவர மருந்து — CDSCO வழி.",
+  },
+};
+
+export function glossary(lang: string): Record<string, string> {
+  return GLOSSARY_DICT[(lang as Lang)] ?? GLOSSARY_DICT.en;
+}
+
+/** The terms that get a tooltip, longest first so "Sec 3(p)" is not
+ *  shadowed by a shorter overlapping key. */
+export const GLOSSARY_TERMS = [
+  "Phytopharmaceutical",
+  "Proprietary",
+  "Classical",
+  "Sec 3(p)",
+  "GRATK",
+  "TKDL",
+  "NBA",
+  "SBB",
+  "ABS",
+  "BDA",
+  "PCT",
+] as const;

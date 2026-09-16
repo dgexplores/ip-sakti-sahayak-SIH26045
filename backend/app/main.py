@@ -13,6 +13,7 @@ from app.api.v1 import chat as chat_router
 from app.api.v1 import classify as classify_router
 from app.api.v1 import corpus as corpus_router
 from app.core.config import get_settings
+from app.core.corpus import corpus_version
 from app.core.errors import SaktiError, sakti_exception_handler
 from app.core.logging import get_logger, setup_logging
 
@@ -56,7 +57,12 @@ async def add_request_id(request: Request, call_next):  # type: ignore[no-untype
     start = time.perf_counter()
     response = await call_next(request)
     response.headers["X-Request-ID"] = rid
-    response.headers["X-Corpus-Version"] = "sakti-corpus-v1"
+    # The real hash, not a hardcoded string. This header was pinned to
+    # "sakti-corpus-v1" — the *fallback* value `corpus_version()` returns only when
+    # the manifest is unreadable — so the header disagreed with the
+    # `corpus_version` field in the response body and with the hash shown in the
+    # UI, while the README promised a stamp that identifies the law library.
+    response.headers["X-Corpus-Version"] = corpus_version()
     response.headers["X-Response-Time"] = f"{(time.perf_counter()-start)*1000:.1f}ms"
     return response
 

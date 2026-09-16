@@ -7,6 +7,8 @@ Protects a brand name, logo or other mark used to distinguish one trader's goods
 - Distinct from a GI: a trademark protects one trader's own brand. It does not protect a region-linked, collectively-used name the way the GI Act does (see `gi_act_1999.md`). An Ayurveda company can trademark its own brand name for a product without that blocking others from using the product's classical, generic name.
 - 10-year registration, renewable indefinitely in further 10-year terms, subject to use (non-use for 5+ years is a ground for removal under Sec 47).
 
+<!-- editorial -->
 Implication for Ayurveda:
 - Brand names, product-line names and logos used to sell an Ayurvedic product are the right subject matter here, not the underlying classical formulation or recipe itself.
 - A generic or classical product name, on its own, is unlikely to clear Sec 9. A distinctive brand name attached to it usually will.
+<!-- /editorial -->

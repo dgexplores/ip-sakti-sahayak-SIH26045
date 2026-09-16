@@ -105,7 +105,12 @@ class ChatResponse(BaseModel):
 
 
 class ClassifyResponse(BaseModel):
-    jurisdiction: Jurisdiction
+    jurisdiction: Jurisdiction = Field(description="regime we answer for — the explicit toggle when given")
+    inferred_jurisdiction: Jurisdiction | None = Field(
+        default=None,
+        description="regime the query text points at, ignoring the toggle — lets callers detect a mismatch",
+    )
+    inferred_jurisdiction_confidence: float = Field(default=0.0, ge=0, le=1)
     ip_type: IPType
     confidence: float
     needs_formulation_flow: bool

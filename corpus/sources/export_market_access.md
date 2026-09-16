@@ -15,7 +15,9 @@ Dietary Supplement Health and Education Act. Ayurvedic products typically enter 
 - Structure/function claims (effect on normal body function) are permitted. Disease claims (treat, cure or prevent a disease) are not, and making one reclassifies the product as an unapproved drug.
 - Mandatory disclaimer on structure/function claims: "This statement has not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease."
 
+<!-- editorial -->
 Implication for Ayurveda:
 - The same product often has a different legal identity in each market: a classical medicine in India, a food supplement in the US, and either a registered traditional herbal medicine or a food supplement in the EU.
 - Claim discipline is the recurring trap. A therapeutic claim that is acceptable on an Indian classical-medicine label can make the product an unapproved drug in the US, and the domestic advertising limits under the Drugs and Magic Remedies Act still apply in parallel (see `magic_remedies_act.md`).
 - Market access is separate from IP. Clearing THMPD or DSHEA says nothing about patent, trademark or ABS obligations, and does not remove the GRATK disclosure duty on any linked patent filing.
+<!-- /editorial -->

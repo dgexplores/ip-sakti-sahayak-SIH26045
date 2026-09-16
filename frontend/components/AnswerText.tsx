@@ -17,7 +17,7 @@ import { GlossaryText } from "@/components/GlossaryTooltip";
 
 const INLINE = /(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
 
-function inline(text: string, keyBase: string): ReactNode[] {
+function inline(text: string, keyBase: string, lang: string): ReactNode[] {
   return text.split(INLINE).filter(Boolean).map((part, i) => {
     const key = `${keyBase}-${i}`;
     if (part.startsWith("**") && part.endsWith("**")) {
@@ -48,11 +48,11 @@ function inline(text: string, keyBase: string): ReactNode[] {
       );
     }
     // Plain run: hand it to the glossary so legal terms keep their definitions.
-    return <GlossaryText key={key}>{part}</GlossaryText>;
+    return <GlossaryText key={key} lang={lang}>{part}</GlossaryText>;
   });
 }
 
-export function AnswerText({ children }: { children: string }) {
+export function AnswerText({ children, lang = "en" }: { children: string; lang?: string }) {
   const lines = children.split("\n");
   const out: ReactNode[] = [];
   let quote: string[] = [];
@@ -66,7 +66,7 @@ export function AnswerText({ children }: { children: string }) {
         className="my-2 rounded-r-xl bg-stone-50 border border-stone-200 px-3 py-2 text-[15px] leading-relaxed text-stone-800"
       >
         {body.split("\n").map((l, i) => (
-          <span key={i} className="block">{inline(l, `q${out.length}-${i}`)}</span>
+          <span key={i} className="block">{inline(l, `q${out.length}-${i}`, lang)}</span>
         ))}
       </blockquote>
     );
@@ -92,12 +92,12 @@ export function AnswerText({ children }: { children: string }) {
       out.push(
         <div key={`li-${i}`} className="flex gap-2 pl-1">
           <span aria-hidden className="mt-2 w-1 h-1 rounded-full bg-stone-400 shrink-0" />
-          <span>{inline(line.replace(/^[-*]\s+/, ""), `li${i}`)}</span>
+          <span>{inline(line.replace(/^[-*]\s+/, ""), `li${i}`, lang)}</span>
         </div>
       );
       return;
     }
-    out.push(<p key={`p-${i}`}>{inline(line, `p${i}`)}</p>);
+    out.push(<p key={`p-${i}`}>{inline(line, `p${i}`, lang)}</p>);
   });
   flushQuote();
 

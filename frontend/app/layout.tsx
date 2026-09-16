@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { SkipLink } from "@/components/SkipLink";
 
 export const metadata: Metadata = {
   title: "IP-SAKTI Sahayak — Ayurveda IP & Regulatory Guidance",
@@ -21,9 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
+        <SkipLink />
         {children}
       </body>
     </html>
