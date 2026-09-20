@@ -30,25 +30,25 @@ type MaterialWeight = "light" | "regular" | "heavy" | "ultra";
 
 const MATERIAL_STYLES: Record<MaterialWeight, { blur: string; bg: string; border: string; shadow: string }> = {
   light: {
-    blur: "blur-[12px]",
+    blur: "backdrop-blur-[12px]",
     bg: "bg-white/70",
     border: "border-white/40",
     shadow: "shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
   },
   regular: {
-    blur: "blur-[20px]",
+    blur: "backdrop-blur-[20px]",
     bg: "bg-white/80",
     border: "border-white/50",
     shadow: "shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.05)]",
   },
   heavy: {
-    blur: "blur-[30px]",
+    blur: "backdrop-blur-[30px]",
     bg: "bg-white/90",
     border: "border-white/60",
     shadow: "shadow-[0_2px_6px_rgba(0,0,0,0.06),0_12px_32px_rgba(0,0,0,0.06)]",
   },
   ultra: {
-    blur: "blur-[40px]",
+    blur: "backdrop-blur-[40px]",
     bg: "bg-white/95",
     border: "border-white/70",
     shadow: "shadow-[0_4px_12px_rgba(0,0,0,0.08),0_20px_48px_rgba(0,0,0,0.08)]",
