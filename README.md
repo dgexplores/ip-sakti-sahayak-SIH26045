@@ -86,7 +86,16 @@ None of these block the demo. The core promise, real quoted law with links and a
 
 ## Project status and handoff notes
 
-Last updated 2026-09-15. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+Last updated 2026-09-20. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+
+### Production (2026-09-20, measured live)
+
+Live: frontend `https://ip-sakti-sahayak-ashen.vercel.app`, backend `https://sakti-api.onrender.com` (free tiers, `render.yaml` + `frontend/vercel.json` in repo).
+
+- **Backend runs databaseless.** No Postgres/Redis: retrieval is lexical over `corpus/`, audit falls back to log lines. `SKIP_ML_MODELS=1` is set because 512MB free containers OOM-restart when torch + MiniLM + CrossEncoder load (measured: 502 + restart mid-request). Embeddings are discarded by the offline path and rerank falls back to the write-back TF-IDF path, so answers are unaffected — only the unused vectors change. If this moves to paid hosting with RAM, unset the flag to restore CrossEncoder rerank and re-run the eval below.
+- **20/20 golden cases pass against the live API** (`scripts/grade_live.sh`): abstention, jurisdiction, top-doc and quote-verbatim all green. In-scope scores 63.8–96.0, genuine out-of-scope 5.0, signal-path refusals 45.0. Gate stays 0.45 — no recalibration was needed on the merged code.
+- **Citations carry full chunk text.** `to_citations` cut spans at 400 chars while the generator quoted from full chunk text (a real Sec 2(1)(j) line past the cut). Fixed: verifiable-by-construction now.
+- **History note (read before rewriting history).** On 2026-09-20 a force-push orphaned the Sep-17 audit commit `1d83da6`; it was recovered to branch `audit-recovery` and merged back as `414e5f9` with the deployment stack layered on top. Never force-push `main` without `git branch <backup> <tip>` first.
 
 ### What changed in this pass (2026-09-15)
 
