@@ -1,6 +1,8 @@
 """Reranker — FREE-FIRST: local CrossEncoder, zero API cost. Cohere only if key present."""
 from __future__ import annotations
 
+import os
+
 from app.models.schemas import IPType
 from app.rag.retriever import IP_TYPE_DOCS, RetrievedChunk
 
@@ -11,6 +13,10 @@ _RERANKER_FAILED = False
 
 def _get_cross_encoder():  # type: ignore[no-untyped-def]
     global _RERANKER, _RERANKER_FAILED
+    if os.environ.get("SKIP_ML_MODELS"):
+        # Same 512MB-container reason as embedder.py: fall through to the
+        # zero-dep lexical rerank below. Deterministic, no download.
+        return None
     if _RERANKER is not None:
         return _RERANKER
     if _RERANKER_FAILED:
@@ -147,10 +153,17 @@ def _lexical_rerank(query: str, chunks: list[RetrievedChunk], top_k: int) -> lis
     `compute_confidence` reads `chunks[0].score`. The weights sum to 1.0 so the
     result stays inside the 0..1 range the confidence mapping assumes — the
     previous pair summed to 1.3 and could print "Top score 1.27" at the user.
+
+    Terms are bridged, stopword-dropped and ascii-filtered exactly like the
+    retriever's own query terms. Scoring the rerank on raw query words while
+    retrieval scores on bridged ones demoted good hits for Indic questions —
+    the two stages must agree on what the question says.
     """
+    from app.rag.retriever import _STOPWORDS, bridge_query
+
     import re
 
-    q_terms = set(re.findall(r"\w+", query.lower()))
+    q_terms = {t for t in set(re.findall(r"\w+", bridge_query(query).lower())) - _STOPWORDS if t.isascii()}
     if not q_terms:
         return sorted(chunks, key=lambda c: c.score, reverse=True)[:top_k]
 

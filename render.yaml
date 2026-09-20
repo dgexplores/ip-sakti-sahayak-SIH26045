@@ -1,0 +1,76 @@
+# Render Blueprint for IP-SAKTI Sahayak backend (SIH26045).
+#
+# Single free web service, NO database. The API runs fully offline:
+# retrieval is lexical over corpus/ (no Postgres needed) and audit falls
+# back to structured log lines when the DB is unreachable. This keeps the
+# free tier alive forever (no 90-day Postgres expiry) and boot fast.
+#
+# Frontend lives on Vercel — point its NEXT_PUBLIC_API_URL at this service.
+#
+# Activate (dashboard-only, one time):
+#   Dashboard → New → Blueprint → connect dgexplores/ip-sakti-sahayak-SIH26045
+#   → name MUST match `sakti-api` below or you get a duplicate service.
+# CLI equivalent once the service exists: `render deploys create -r <id>`.
+#
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    # Must match EXACTLY or Render creates a second service instead of adopting.
+    name: sakti-api
+    runtime: python
+    plan: free
+    region: oregon
+    repo: https://github.com/dgexplores/ip-sakti-sahayak-SIH26045
+    branch: main
+    rootDir: backend
+    autoDeployTrigger: commit
+    numInstances: 1
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # Render reads PYTHON_VERSION (not pythonVersion) for the interpreter.
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: APP_ENV
+        value: production
+      - key: APP_VERSION
+        value: "0.1.0"
+      # generateValue only fills in when empty: adopting this Blueprint
+      # never rotates the live secret.
+      - key: SECRET_KEY
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENABLE_AUDIT
+        value: "true"
+      # FREE-FIRST stack: local embeddings, offline-extractive LLM, zero cost.
+      # No DB configured on purpose — the lexical offline path is the product.
+      # SKIP_ML_MODELS=1: 512MB free containers OOM if torch + MiniLM +
+      # CrossEncoder load (service restarts mid-request). Embeddings are
+      # discarded by the offline path and rerank falls back to TF-IDF, so
+      # answers are unaffected — only the (unused) vectors change.
+      - key: SKIP_ML_MODELS
+        value: "1"
+      - key: EMBEDDING_PROVIDER
+        value: local
+      - key: EMBEDDING_MODEL
+        value: sentence-transformers/all-MiniLM-L6-v2
+      - key: LLM_PROVIDER
+        value: offline
+      - key: LLM_MODEL
+        value: offline-extractive
+      - key: VECTOR_STORE
+        value: pgvector
+      - key: BHASHINI_INFERENCE_URL
+        value: https://dhruva-api.bhashini.gov.in/services/inference/pipeline
+      # Paid/optional keys stay out of git: fill once in the dashboard.
+      - key: BHASHINI_API_KEY
+        sync: false
+      - key: BHASHINI_USER_ID
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      # Vercel frontend origin (backend also allows *.vercel.app by regex).
+      - key: CORS_EXTRA_ORIGINS
+        value: https://*.vercel.app

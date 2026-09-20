@@ -10,6 +10,8 @@ import { VoiceButton } from "@/components/VoiceButton";
 import { SplitViewTrigger } from "@/components/SplitView";
 import { Icon, type IconName } from "@/components/Icon";
 import { AnswerText } from "@/components/AnswerText";
+import { FluidButton } from "@/components/ui/FluidButtons";
+import { Toolbar, Card } from "@/components/ui/Materials";
 import { GlossaryBar } from "@/components/GlossaryTooltip";
 import { LANGS, EXAMPLES, t, readStoredLang, storeLang } from "@/lib/i18n";
 import { chat, getCorpusVersion, ApiError, type ChatResponse, type FormulationAnswer, type Jurisdiction } from "@/lib/api";
@@ -92,7 +94,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-[#FFFBF5]">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-stone-200">
+      <Toolbar className="border-b border-stone-200/60">
         <div className="mx-auto max-w-[1180px] px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
           <div className="w-9 h-9 rounded-xl bg-ink text-white grid place-items-center font-extrabold text-xs shrink-0">IP</div>
           <div className="min-w-0">
@@ -131,7 +133,7 @@ export default function Page() {
           <div className={`flex-1 ${jurisdiction === "india" ? "bg-saffron" : "bg-stone-200"}`} style={{ transition: "background-color 180ms var(--ease-out)" }} />
           <div className={`flex-1 ${jurisdiction === "international" ? "bg-indiaBlue" : "bg-stone-200"}`} style={{ transition: "background-color 180ms var(--ease-out)" }} />
         </div>
-      </header>
+      </Toolbar>
 
       <main id="main" className="mx-auto max-w-[1180px] px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 items-start">
         <div className="space-y-5 min-w-0">
@@ -155,7 +157,7 @@ export default function Page() {
           )}
 
           {/* The one thing to do on this page. */}
-          <section className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card overflow-hidden stagger-in" style={{ animationDelay: "60ms" }}>
+          <Card className="overflow-hidden stagger-in" style={{ animationDelay: "60ms" } as React.CSSProperties}>
             <div className="px-5 pt-5 pb-4">
               <h2 className="h-display text-lg font-extrabold leading-tight">{s.askTitle}</h2>
               <p className="text-sm text-stone-600 mt-1">{s.askHint}</p>
@@ -175,23 +177,17 @@ export default function Page() {
                 />
               </div>
 
-              <button
+              <FluidButton
                 onClick={() => onSend()}
                 disabled={loading || !query.trim()}
-                className="pressable touch-48 mt-3 w-full py-4 rounded-2xl bg-ink text-white text-[16px] font-extrabold disabled:opacity-40 inline-flex items-center justify-center gap-2"
+                className="mt-3 w-full"
+                size="lg"
+                loading={loading}
+                loadingText={s.sending}
+                icon={<Icon name="next" className="w-4 h-4" />}
               >
-                {loading ? (
-                  <>
-                    <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white" style={{ animation: "spin 0.7s linear infinite" }} aria-hidden />
-                    {s.sending}
-                  </>
-                ) : (
-                  <>
-                    {s.send}
-                    <Icon name="next" className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+                {s.send}
+              </FluidButton>
 
               <label className="mt-3 flex items-center gap-2.5 text-sm cursor-pointer">
                 <input type="checkbox" checked={eli5} onChange={(e) => setEli5(e.target.checked)} className="w-4 h-4 accent-ink" />
@@ -211,20 +207,25 @@ export default function Page() {
               <div className="text-xs font-bold uppercase tracking-widest text-stone-500">{s.examplesLabel}</div>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {EXAMPLES.map((ex) => (
-                  <button
+                  <FluidButton
                     key={ex.q}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => { setQuery(ex.q); setJurisdiction(ex.jurisdiction as Jurisdiction); onSend(ex.q); }}
-                    className="pressable inline-flex items-center gap-2 pl-2.5 pr-3.5 py-2 rounded-full bg-white border border-stone-300 text-sm font-semibold text-stone-800 hover:border-ink/40"
+                    className="gap-2 pl-2.5 pr-3.5 py-2"
+                    icon={
+                      <span className={`w-6 h-6 rounded-full grid place-items-center shrink-0 ${ex.jurisdiction === "india" ? "bg-saffron/15 text-saffron-dark" : "bg-indiaBlue/10 text-indiaBlue"}`}>
+                        <Icon name={ex.icon as IconName} className="w-3.5 h-3.5" />
+                      </span>
+                    }
+                    iconPosition="left"
                   >
-                    <span className={`w-6 h-6 rounded-full grid place-items-center shrink-0 ${ex.jurisdiction === "india" ? "bg-saffron/15 text-saffron-dark" : "bg-indiaBlue/10 text-indiaBlue"}`}>
-                      <Icon name={ex.icon as IconName} className="w-3.5 h-3.5" />
-                    </span>
                     {ex.label[lang as keyof typeof ex.label] ?? ex.label.en}
-                  </button>
+                  </FluidButton>
                 ))}
               </div>
             </div>
-          </section>
+          </Card>
 
           {/* Offered, not imposed. */}
           {!showTriage ? (
@@ -251,16 +252,16 @@ export default function Page() {
                 lang={lang}
                 onComplete={(ans) => { setFormulation(ans); onSend(query || "Classify my Ayurvedic formulation", ans); }}
               />
-              <button onClick={() => setShowTriage(false)} className="pressable mt-2 mx-auto block text-sm font-bold text-stone-600 px-4 py-2 rounded-full hover:bg-stone-100">
+              <FluidButton variant="ghost" size="sm" onClick={() => setShowTriage(false)} className="mt-2 mx-auto">
                 {s.closeTriage}
-              </button>
+              </FluidButton>
             </div>
           )}
 
           {res?.firewall?.mixed_query && <SplitViewTrigger query={query} lang={lang} />}
 
           {res && (
-            <div ref={answerRef} className="rounded-[20px] border-2 bg-white shadow-card overflow-hidden stagger-in" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" }}>
+            <Card ref={answerRef} className="overflow-hidden stagger-in" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" } as React.CSSProperties}>
               <div className={`px-5 py-3 flex items-center gap-3 ${jurisdiction === "india" ? "bg-saffron text-white" : "bg-indiaBlue text-white"}`}>
                 <span className="inline-flex items-center gap-2 text-sm font-extrabold">
                   <Icon name={res.jurisdiction === "india" ? "india" : "world"} className="w-4 h-4" />
@@ -314,24 +315,24 @@ export default function Page() {
 
                 <p className="mt-4 text-xs text-stone-600 leading-relaxed">{s.disclaimer}</p>
               </div>
-            </div>
+            </Card>
           )}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-[132px] min-w-0">
-          <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-4">
+          <Card className="p-4">
             <CitationPane citations={res?.citations ?? []} corpusVersion={res?.corpus_version ?? corpus?.corpus_version} lang={lang} />
-          </div>
+          </Card>
 
           {/* Jargon buster. The tooltips also work inline in the answer, but a
               first-time reader has no way to know that, so the five terms that
               carry the whole legal argument are surfaced up front. */}
-          <div className="rounded-[20px] bg-white border-2 border-stone-200 shadow-card p-4">
+          <Card className="p-4">
             <div className="text-xs font-extrabold tracking-widest uppercase text-stone-500">{s.glossaryTitle}</div>
             <div className="mt-2.5">
               <GlossaryBar lang={lang} />
             </div>
-          </div>
+          </Card>
 
           <div className="flex flex-wrap gap-2 text-xs font-bold">
             {[s.noFees, s.free, s.offline, s.languages].map((label) => (
@@ -345,14 +346,16 @@ export default function Page() {
       </main>
 
       <footer className="mx-auto max-w-[1180px] px-4 sm:px-6 pb-8">
-        <div className="rounded-2xl border border-stone-200 bg-white px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs text-stone-600">
-          <span className="font-bold text-stone-800">IP-SAKTI Sahayak</span>
-          <span className="leading-relaxed">{s.footerNote}</span>
-          <span className="sm:ml-auto flex items-center gap-4 font-bold">
-            <a href="/privacy" className="hover:text-ink underline-offset-2 hover:underline">{s.privacy}</a>
-            <a href="/terms" className="hover:text-ink underline-offset-2 hover:underline">{s.terms}</a>
-          </span>
-        </div>
+        <Card className="px-5 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs text-stone-600">
+            <span className="font-bold text-stone-800">IP-SAKTI Sahayak</span>
+            <span className="leading-relaxed">{s.footerNote}</span>
+            <span className="sm:ml-auto flex items-center gap-4 font-bold">
+              <a href="/privacy" className="hover:text-ink underline-offset-2 hover:underline">{s.privacy}</a>
+              <a href="/terms" className="hover:text-ink underline-offset-2 hover:underline">{s.terms}</a>
+            </span>
+          </div>
+        </Card>
       </footer>
     </div>
   );

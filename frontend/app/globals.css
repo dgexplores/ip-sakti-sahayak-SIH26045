@@ -6,23 +6,53 @@
 
 :root {
   color-scheme: light;
-  /* Emil — strong custom easings, never vanilla ease */
+  /* Apple Design — custom easings */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
 }
 
 * { font-variant-ligatures: common-ligatures; }
 html { scrollbar-gutter: stable; }
-body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, sans-serif; }
+body { 
+  @apply bg-stone-50 text-ink antialiased; 
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
 
-/* Villager — minimum 16px base, 18px on answer, never light gray on white below 4.5:1 */
-.h-display { font-family: Fraunces, serif; letter-spacing: -0.02em; }
+/* Apple Design: Typography — optical sizing, size-specific tracking */
+/* Display: negative tracking as it grows */
+.h-display { 
+  font-family: Fraunces, ui-serif, Georgia, serif; 
+  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
+}
 
-/* --- Emil: only transform + opacity, under 300ms, hardware accelerated --- */
+/* Body: near 0 tracking, comfortable leading */
+.h-body { 
+  letter-spacing: 0; 
+  line-height: 1.6; 
+}
+
+/* Small: slight positive tracking for legibility */
+.h-caption { 
+  letter-spacing: 0.01em; 
+  line-height: 1.5; 
+}
+
+/* System font stack with optical sizing */
+.font-system { 
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* Apple Design: Feedback on pointer-down, instant */
 .pressable {
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  transition: transform 100ms var(--ease-out), opacity 100ms var(--ease-out), background-color 100ms var(--ease-out), border-color 100ms var(--ease-out);
   will-change: transform;
 }
 .pressable:active { transform: scale(0.97); }
@@ -30,21 +60,47 @@ body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, s
   .pressable:hover { transform: translateY(-1px); }
 }
 
-/* Stagger — 48ms between cards, decorative not blocking */
+/* Apple Design: Stagger entrance - decorative, not blocking */
 @keyframes villaIn {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .stagger-in {
-  animation: villaIn 320ms var(--ease-out) both;
+  animation: villaIn 280ms var(--ease-out) both;
   will-change: transform, opacity;
 }
+
+/* Apple Design: Reduced motion - cross-fade, not slide/spring */
 @media (prefers-reduced-motion: reduce) {
   .stagger-in { animation: none; opacity: 1; transform: none; }
-  .pressable, .drawer, .popover { transition-duration: 0ms !important; }
+  .pressable { transition-duration: 0ms !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-/* Drawer — Emil: translateY(100%) percentage, not px, + spring feel */
+/* Apple Design: Reduced transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur, 
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
+    backdrop-filter: none !important;
+  }
+}
+
+/* Apple Design: High contrast */
+@media (prefers-contrast: more) {
+  .border-stone-200 { border-color: #0B2239 !important; }
+  .text-stone-600 { color: #0B2239 !important; }
+  .bg-stone-50 { background-color: white !important; }
+}
+
+/* Apple Design: Drawer — spring feel, translateY percentage */
 .drawer {
   transform: translateY(100%);
   transition: transform 420ms var(--ease-drawer);
@@ -52,7 +108,7 @@ body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, s
 }
 .drawer[data-open="true"] { transform: translateY(0); }
 
-/* Popover — origin-aware, never center */
+/* Apple Design: Popover — origin-aware, never center */
 .popover {
   transform-origin: var(--radix-popover-content-transform-origin, top);
   transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out);
@@ -61,19 +117,11 @@ body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, s
   opacity: 0; transform: scale(0.97);
 }
 
-/* Blur bridge for state swaps */
-.blur-swap { transition: filter 180ms var(--ease-out), opacity 180ms var(--ease-out); }
-.blur-swap.swapping { filter: blur(4px); opacity: 0.75; }
-
-/* Clip reveal for images/cards */
-.reveal { clip-path: inset(0 0 100% 0); transition: clip-path 500ms var(--ease-out); }
-.reveal[data-in-view="true"] { clip-path: inset(0 0 0 0); }
-
-/* Confidence track — transform scaleX not width */
+/* Apple Design: Confidence track — transform scaleX not width */
 .confidence-track { @apply h-2 rounded-full bg-stone-100 overflow-hidden; }
 .confidence-fill { height: 100%; transform-origin: left; transition: transform 700ms var(--ease-out); will-change: transform; }
 
-/* Villager touch targets: min 48px */
+/* Apple Design: Touch targets minimum 48px */
 .touch-48 { min-height: 48px; min-width: 48px; }
 
 /* Focus visible — always */
@@ -96,5 +144,20 @@ body { @apply bg-stone-50 text-ink antialiased; font-family: Inter, system-ui, s
 }
 .skip-link:focus-visible { top: 1rem; }
 
+/* Apple Design: Spin animation for loading */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Apple Design: Ping animation for recording */
+@keyframes ping {
+  0% { transform: scale(1); opacity: 0.75; }
+  75%, 100% { transform: scale(1.5); opacity: 0; }
+}
+
 /* Citation highlight */
 .cite-mark { @apply bg-amber-100 text-amber-900 px-1 py-0.5 rounded text-xs font-medium; }
+
+/* Apple Design: Scrollbar styling */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }

@@ -611,12 +611,16 @@ async def retrieve_all(emb: list[float] | None, jurisdiction: Jurisdiction | Non
 
 
 def to_citations(chunks: list[RetrievedChunk]) -> list[Citation]:
+    # Full chunk text, never truncated: the generator quotes from c.text, so a
+    # [:400] cut let answers cite sentences the shown citation does not contain
+    # (measured live: a real Sec 2(1)(j) line past the cut). True text, but
+    # unverifiable in the UI. Chunks are ≤800 tokens by construction.
     return [
         Citation(
             id=f"cite_{c.id}",
             source_type=c.source_type,  # type: ignore[arg-type]
             title=c.doc_title,
-            span_text=c.text[:400],
+            span_text=c.text,
             deep_link=c.deep_link,
             locator=c.locator,
             version_hash=c.version_hash,

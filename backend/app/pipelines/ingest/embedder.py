@@ -2,14 +2,25 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from typing import Protocol
 
 import httpx
 
-try:
-    from sentence_transformers import SentenceTransformer  # type: ignore[import]
-except Exception:
-    SentenceTransformer = None  # type: ignore[assignment,misc]
+
+def _sentence_transformer_cls():
+    """Import lazily so `import torch` (~200MB) never runs at API boot.
+
+    The offline/lexical path never constructs a model; importing
+    sentence_transformers at module load would still pay the full torch
+    import cost on every boot (fatal on 512MB free-tier containers).
+    """
+    try:
+        from sentence_transformers import SentenceTransformer  # type: ignore[import]
+
+        return SentenceTransformer
+    except Exception:
+        return None
 
 
 class Embedder(Protocol):
@@ -67,6 +78,16 @@ class LocalEmbedder:
     dim = 384
 
     def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> None:
+        if os.environ.get("SKIP_ML_MODELS"):
+            # 512MB free-tier containers OOM if torch + MiniLM + CrossEncoder
+            # load (service restarts mid-request). The offline retrieval path
+            # is lexical and never reads these vectors — skip the download and
+            # serve deterministic hash vectors instead. Answers unaffected.
+            self.model = None  # type: ignore[assignment]
+            self.model_name = model_name
+            self.dim = 384
+            return
+        SentenceTransformer = _sentence_transformer_cls()
         if SentenceTransformer is None:
             # graceful degradation: hash embed so demo never crashes when transformers missing
             self.model = None  # type: ignore[assignment]
