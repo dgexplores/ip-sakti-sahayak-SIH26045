@@ -10,7 +10,7 @@ from fastapi import APIRouter, Request
 from app.core.config import get_settings
 from app.core.corpus import corpus_version
 from app.core.logging import get_logger
-from app.models.schemas import ChatRequest, ChatResponse, Citation, Confidence, Jurisdiction
+from app.models.schemas import ChatRequest, ChatResponse, Citation
 from app.rag.classifier import classify_query
 from app.rag.confidence import compute_confidence
 from app.rag.formulation import FORMULATION_QUESTIONS, evaluate_formulation

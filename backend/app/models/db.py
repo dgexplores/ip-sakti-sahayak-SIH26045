@@ -4,7 +4,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import Column, String
 from sqlmodel import Field, SQLModel
 
 # pgvector type is registered via `pgvector.sqlalchemy.Vector` at runtime

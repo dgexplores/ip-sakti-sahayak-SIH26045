@@ -1,5 +1,4 @@
 """Contract tests — guarantees PS must-haves, win conditions."""
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 

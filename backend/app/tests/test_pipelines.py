@@ -1,4 +1,4 @@
-import pathlib, json, hashlib
+import pathlib
 from app.pipelines.ingest.loader import load_manifest, load_file
 from app.pipelines.ingest.chunker import chunk_text
 
@@ -84,5 +84,5 @@ def test_chunker_section_aware():
     text = "# Sec 3(p)\n" + "Traditional knowledge bar. " * 50 + "\n## Sec 10\n" + "Complete spec. " * 50
     chunks = chunk_text(text, "doc", chunk_size=100, overlap=10)
     locs = [c.locator for c in chunks]
-    assert any("Sec 3(p)" in l for l in locs)
-    assert any("Sec 10" in l for l in locs)
+    assert any("Sec 3(p)" in loc for loc in locs)
+    assert any("Sec 10" in loc for loc in locs)

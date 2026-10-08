@@ -66,7 +66,7 @@ export function useSpringValue(initialValue: number) {
       animationRef.current.stop();
     }
     setValue(target);
-  }, [value]);
+  }, []);
 
   return { value, animateTo, setImmediate, stop: () => animationRef.current?.stop() };
 }
@@ -147,7 +147,7 @@ export function useReducedMotion(): boolean {
     const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
-  }, [value]);
+  }, []);
   
   return reduced;
 }
@@ -165,7 +165,7 @@ export function useReducedTransparency(): boolean {
     const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
-  }, [value]);
+  }, []);
   
   return reduced;
 }
@@ -183,7 +183,7 @@ export function useHighContrast(): boolean {
     const handler = (e: MediaQueryListEvent) => setHighContrast(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
-  }, [value]);
+  }, []);
   
   return highContrast;
 }

@@ -307,7 +307,6 @@ def _tokens(text: str) -> set[str]:
     with every other document that merely mentions the word. Applied to both
     sides, so the comparison stays symmetric.
     """
-    import re
 
     out = set()
     for t in re.findall(r"\w+", text.lower()):
@@ -439,7 +438,6 @@ def _offline_search(
     for that so the jurisdiction firewall has something real to filter — a
     firewall is only meaningful if contamination can actually reach it.
     """
-    import re
 
     pool = [
         c for c in _offline_index()

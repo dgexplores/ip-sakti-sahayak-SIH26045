@@ -1,7 +1,6 @@
 """Indexer — idempotent upsert to pgvector or Qdrant. No duplicate chunks."""
 from __future__ import annotations
 
-import json
 import uuid
 from dataclasses import dataclass
 
@@ -53,14 +52,8 @@ def build_records(doc: RawDoc, chunks: list[Chunk], embeddings: list[list[float]
 async def upsert_pgvector(records: list[IndexRecord]) -> int:
     if not records:
         return 0
-    # lazy import so tests don't need DB
-    import sqlalchemy as sa
-    from sqlalchemy.ext.asyncio import create_async_engine  # type: ignore[import]
-
-    settings = get_settings()
-    # ensure sync URL converted if needed — we use psycopg sync for MVP, but keep async path typed
-    # MVP uses simple sync psycopg; this function is kept for future async migration
-    # For now, no-op log — real upsert is implemented in CLI sync path below
+    # MVP uses simple sync psycopg; this async function is kept for future migration
+    # For now, no-op — real upsert is implemented in CLI sync path below
     return len(records)
 
 
