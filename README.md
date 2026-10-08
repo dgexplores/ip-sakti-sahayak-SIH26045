@@ -1,5 +1,7 @@
 # IP-SAKTI Sahayak (SIH26045)
 
+[![CI](https://github.com/dgexplores/ip-sakti-sahayak-SIH26045/actions/workflows/ci.yml/badge.svg)](https://github.com/dgexplores/ip-sakti-sahayak-SIH26045/actions)
+
 A free assistant that answers Ayurveda IP and legal questions, with a real law quoted for every answer.
 
 > PS: SIH26045, Ministry of Ayush (AIIA), MedTech/HealthTech, Theme 18, Python + AI/ML track.
