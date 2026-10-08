@@ -355,7 +355,7 @@ export function usePress(
   }, [onPress, haptic, delay]);
 
   useEffect(() => {
-    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    return () => { const timeout = timeoutRef.current; if (timeout) clearTimeout(timeout); };
   }, []);
 
   return {
