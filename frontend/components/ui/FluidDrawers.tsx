@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { animate } from "motion";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/lib/motion";
 import { useDrag } from "@/lib/gestures";
 import { hapticSnap, hapticSuccess } from "@/lib/haptics";
 import { Material } from "./Materials";
+
+const DEFAULT_SNAP_POINTS = [0.25, 0.5, 0.9];
 
 /**
  * Apple Design: Drawer/sheet with spring animation
@@ -37,7 +39,7 @@ export function FluidDrawer({
   children, 
   title,
   className,
-  snapPoints = [0.25, 0.5, 0.9],
+  snapPoints = DEFAULT_SNAP_POINTS,
   defaultSnap = 1,
   dragContent = true,
   showHandle = true,
@@ -54,7 +56,7 @@ export function FluidDrawer({
 
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
   const maxPx = vh * maxHeight;
-  const snapPx = snapPoints.map(p => vh * (1 - p)); // Distance from top
+  const snapPx = useMemo(() => snapPoints.map(p => vh * (1 - p)), [snapPoints, vh]); // Distance from top
 
   // Animate to snap point with spring
   const animateToSnap = useCallback((snapIndex: number, velocity = 0) => {
@@ -76,7 +78,7 @@ export function FluidDrawer({
     ).finished.then(() => {
       setPosition(snapIndex);
     });
-  }, []);
+  }, [snapPx]);
 
   // Drag handler for the handle
   const handleState = useDrag(
@@ -177,7 +179,7 @@ export function FluidDrawer({
           .finished.then(onClose);
       }
     }
-  }, [open, defaultSnap, animateToSnap, onClose]);
+  }, [open, defaultSnap, animateToSnap, onClose, vh]);
 
   if (!open) return null;
 

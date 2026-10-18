@@ -406,10 +406,9 @@ def _offline_extractive_answer(query: str, jurisdiction: Jurisdiction, chunks: l
     cited = chunks[:3]
     q_terms = set(_re.findall(r"\w+", query.lower()))
     scope = "INDIA law" if jurisdiction == Jurisdiction.INDIA else "INTERNATIONAL law"
-
-    body = f"**{scope} — short answer**\n{_verdict(query, jurisdiction, cited, ip_type)}\n\n"
-    body += "**Why — the exact law that decides this**\n"
-    body += "Each quote below is word-for-word from the statute or registry. Open the source link to read it in place.\n\n"
+    body = f"**Direct answer — {scope}**\n{_verdict(query, jurisdiction, cited, ip_type)}\n\n"
+    body += "**The law behind this answer**\n"
+    body += "These are the exact passages that support the answer. Open a source to read it in context.\n\n"
     for i, c in enumerate(cited, 1):
         snippet = _pick_sentences(c.text, q_terms)
         # Locator first. The manifest titles are deliberately descriptive
@@ -440,7 +439,7 @@ def _eli5(query: str, jurisdiction: Jurisdiction, chunks: list[RetrievedChunk], 
     if jurisdiction == Jurisdiction.INDIA:
         if it == IPType.PATENT:
             if _has(chunks, "3(p)", "traditional knowledge"):
-                return "Copy-paste from old book = no patent (law says it’s already known). New mix, new ratio or new way of making it = may get patent. Either way, tell the bio-board you used the plant."
+                return "For an unchanged recipe from a classical text, the answer is no patent: it is already known. A genuinely new ratio, process or dose may qualify, but you must be able to explain exactly what changed. If you use biological resources, check whether biodiversity clearance is required before filing."
             return "Patent = something new that no book or product already shows. The old recipe stays free for all; only your genuinely new part can be yours."
         if it == IPType.TRADEMARK:
             return "Name and pack can be yours even if the recipe is everyone’s. Register the brand early so copycats can’t use your name."

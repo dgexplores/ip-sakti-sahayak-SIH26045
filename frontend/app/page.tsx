@@ -50,6 +50,8 @@ export default function Page() {
   const [showTriage, setShowTriage] = useState(false);
   const [formulation, setFormulation] = useState<FormulationAnswer | null>(null);
   const [corpusError, setCorpusError] = useState(false);
+  const [showLegalDetail, setShowLegalDetail] = useState(false);
+  const sendingRef = useRef(false);
   const answerRef = useRef<HTMLDivElement>(null);
 
   const s = t(lang);
@@ -72,20 +74,31 @@ export default function Page() {
 
   async function onSend(q?: string, form?: FormulationAnswer) {
     const text = (q ?? query).trim();
-    if (!text) return;
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
     setLoading(true);
     setError(null);
     try {
       const r = await chat(text, jurisdiction, lang, form ?? formulation ?? undefined, sessionId, eli5);
       setRes(r);
+      setShowLegalDetail(!r.answer_simple);
       setShowTriage(false);
       setTimeout(() => answerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
     } catch (e) {
       // A transport failure gets the localised hint; a rejection from the
       // backend carries its own message, which is English (the corpus and the
       // API are English) and is shown as-is rather than swallowed.
-      setError(e instanceof ApiError && e.code === "network" ? s.errorHint : e instanceof Error ? e.message : s.errorHint);
+      setError(
+        e instanceof ApiError && e.code === "timeout"
+          ? s.requestTimedOut
+          : e instanceof ApiError && e.code === "network"
+            ? s.errorHint
+            : e instanceof Error
+              ? e.message
+              : s.errorHint
+      );
     } finally {
+      sendingRef.current = false;
       setLoading(false);
     }
   }
@@ -198,7 +211,12 @@ export default function Page() {
               {error && (
                 <div className="mt-3 rounded-xl bg-red-50 border-2 border-red-200 p-3 text-sm text-red-900 flex gap-2">
                   <Icon name="warn" className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{error}</span>
+                  <div className="min-w-0 flex-1">
+                    <p>{error}</p>
+                    <button type="button" onClick={() => onSend()} className="mt-2 font-bold underline underline-offset-2 hover:no-underline">
+                      {s.errRetry}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -278,10 +296,8 @@ export default function Page() {
                   </div>
                 )}
 
-                <div className="text-[17px] leading-7 text-ink"><AnswerText lang={lang}>{res.answer}</AnswerText></div>
-
                 {res.answer_simple && (
-                  <div className="mt-5 rounded-2xl bg-amber-50 border-2 border-amber-200 p-4">
+                  <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4">
                     <div className="text-xs font-extrabold tracking-widest uppercase text-amber-900 flex items-center gap-2">
                       <Icon name="simple" className="w-3.5 h-3.5" />
                       {s.simpleHeading}
@@ -289,6 +305,29 @@ export default function Page() {
                     <div className="text-[15px] leading-7 mt-2 text-amber-950"><AnswerText lang={lang}>{res.answer_simple}</AnswerText></div>
                   </div>
                 )}
+
+                <div className="mt-4 rounded-2xl border-2 border-stone-200 bg-white overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowLegalDetail((value) => !value)}
+                    aria-expanded={showLegalDetail}
+                    className="pressable flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-stone-50"
+                  >
+                    <span className="w-9 h-9 rounded-xl bg-stone-100 text-ink grid place-items-center shrink-0">
+                      <Icon name="cite" className="w-4 h-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-extrabold">{s.legalDetailTitle}</span>
+                      <span className="block mt-0.5 text-sm text-stone-600">{s.legalDetailHint}</span>
+                    </span>
+                    <Icon name="next" className={`w-4 h-4 shrink-0 transition-transform ${showLegalDetail ? "rotate-90" : ""}`} />
+                  </button>
+                  {showLegalDetail && (
+                    <div className="border-t border-stone-200 px-4 py-4 text-[16px] leading-7 text-ink">
+                      <AnswerText lang={lang}>{res.answer}</AnswerText>
+                    </div>
+                  )}
+                </div>
 
                 {res.formulation_result && (
                   <div className="mt-5">

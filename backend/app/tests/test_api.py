@@ -28,6 +28,13 @@ def test_classify():
     assert r.status_code == 200
     assert "ip_type" in r.json()
 
+
+def test_invalid_chat_request_has_a_public_error_shape():
+    r = client.post("/api/v1/chat", json={"query": "x", "jurisdiction": "india"})
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "validation_error"
+    assert r.json()["error"]["message"] == "Please check the information you entered."
+
 def test_escalate():
     r = client.post("/api/v1/escalate", json={"session_id": "sess_test", "query": "need help", "reason": "low confidence", "jurisdiction": "india"})
     assert r.status_code == 200

@@ -5,6 +5,7 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -47,6 +48,15 @@ app.add_middleware(
 )
 
 app.add_exception_handler(SaktiError, sakti_exception_handler)  # type: ignore[arg-type]
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    """Keep framework validation failures in the public API error shape."""
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"code": "validation_error", "message": "Please check the information you entered.", "details": exc.errors()}},
+    )
 
 
 @app.middleware("http")

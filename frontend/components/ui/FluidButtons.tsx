@@ -53,7 +53,7 @@ export const FluidButton = forwardRef<HTMLButtonElement, FluidButtonProps>(
     ...props 
   }, ref) => {
     const reducedMotion = useReducedMotion();
-    const scaleRef = { current: null as HTMLButtonElement | null };
+    const scaleRef = useRef<HTMLButtonElement | null>(null);
     
     // Handle forwarded ref properly
     const combinedRef = useCallback((el: HTMLButtonElement | null) => {

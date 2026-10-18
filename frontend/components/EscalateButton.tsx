@@ -24,7 +24,10 @@ export function EscalateButton({ sessionId, query, jurisdiction, citations, lang
   if (failed) return (
     <div className="stagger-in rounded-2xl bg-red-50 border-2 border-red-200 p-4 flex gap-3">
       <span className="w-9 h-9 rounded-xl bg-red-500 text-white grid place-items-center shrink-0"><Icon name="warn" className="w-4 h-4" /></span>
-      <div className="text-sm text-red-900 leading-relaxed">{s.escalateFailed}</div>
+      <div className="text-sm text-red-900 leading-relaxed">
+        <p>{s.escalateFailed}</p>
+        <button type="button" onClick={onClick} className="mt-2 font-bold underline underline-offset-2 hover:no-underline">{s.errRetry}</button>
+      </div>
     </div>
   );
   if (ticket) return (

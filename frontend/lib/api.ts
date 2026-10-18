@@ -48,9 +48,9 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
  *  the two apart and render their own language.
  */
 export class ApiError extends Error {
-  readonly code: "network" | "http";
+  readonly code: "network" | "timeout" | "http";
   readonly status?: number;
-  constructor(message: string, code: "network" | "http", status?: number) {
+  constructor(message: string, code: "network" | "timeout" | "http", status?: number) {
     super(message);
     this.name = "ApiError";
     this.code = code;
@@ -61,11 +61,18 @@ export class ApiError extends Error {
 /** Shared fetch wrapper: surfaces backend `{error:{message}}` bodies as real Error messages
  * instead of letting callers hit an opaque JSON-parse failure or silently-wrong data. */
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20_000);
   let res: Response;
   try {
-    res = await fetch(`${API}${path}`, init);
-  } catch {
+    res = await fetch(`${API}${path}`, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new ApiError("request timed out", "timeout");
+    }
     throw new ApiError("network unreachable", "network");
+  } finally {
+    window.clearTimeout(timeout);
   }
   if (!res.ok) {
     let message = `Request failed (${res.status})`;

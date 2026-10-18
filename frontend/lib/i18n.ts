@@ -34,6 +34,7 @@ type Strings = {
   listening: string;
   listeningHint: string;
   voiceUnsupported: string;
+  voiceError: string;
   or: string;
   placeholder: string;
   send: string;
@@ -52,10 +53,14 @@ type Strings = {
   splitLoading: string;
   splitNoData: string;
   simpleHeading: string;
+  legalDetailTitle: string;
+  legalDetailHint: string;
   proofTitle: string;
   proofEmpty: string;
   proofHint: string;
   openSource: string;
+  showAllSources: string;
+  showFewerSources: string;
   confidence: string;
   escalate: string;
   escalateSending: string;
@@ -76,6 +81,7 @@ type Strings = {
   backendOffline: string;
   loading: string;
   errorHint: string;
+  requestTimedOut: string;
   disclaimer: string;
   glossaryTitle: string;
   footerNote: string;
@@ -106,6 +112,7 @@ const en: Strings = {
   listening: "Listening, tap to stop",
   listeningHint: "We can hear you",
   voiceUnsupported: "This browser cannot take voice input. Please type your question below instead.",
+  voiceError: "We could not hear that clearly. Please try speaking again or type your question.",
   or: "or",
   placeholder: "Type your question here, in your own words",
   send: "Get the answer",
@@ -124,10 +131,14 @@ const en: Strings = {
   splitLoading: "Fetching both…",
   splitNoData: "No data yet — press the button",
   simpleHeading: "In simple words",
+  legalDetailTitle: "Read the law and reasoning",
+  legalDetailHint: "See the exact legal excerpts and the steps they support.",
   proofTitle: "Proof for every line",
   proofEmpty: "Your proof will appear here",
   proofHint: "Each answer is backed by the actual Act, Rule or Treaty, with a link to the government page.",
   openSource: "Open the official page",
+  showAllSources: "Show all sources",
+  showFewerSources: "Show fewer sources",
   confidence: "confidence",
   escalate: "Send to a human expert",
   escalateSending: "Sending…",
@@ -148,6 +159,7 @@ const en: Strings = {
   backendOffline: "server offline",
   loading: "loading…",
   errorHint: "Could not reach the server. Is the backend running?",
+  requestTimedOut: "This is taking longer than expected. Please try again.",
   disclaimer: "Information only, not legal advice. Please check the source links before you file anything.",
   glossaryTitle: "Words you will meet",
   footerNote: "Citation-grounded guidance, not legal advice. Verify against the official sources.",
@@ -178,6 +190,7 @@ const hi: Strings = {
   listening: "सुन रहे हैं, रोकने के लिए दबाइए",
   listeningHint: "हमें आपकी आवाज़ आ रही है",
   voiceUnsupported: "यह ब्राउज़र आवाज़ नहीं ले सकता। नीचे अपना सवाल टाइप कीजिए।",
+  voiceError: "हम आपकी बात साफ़ नहीं सुन पाए। फिर से बोलिए या अपना सवाल लिखिए।",
   or: "या",
   placeholder: "अपना सवाल यहाँ लिखिए, अपने ही शब्दों में",
   send: "जवाब पाइए",
@@ -196,10 +209,14 @@ const hi: Strings = {
   splitLoading: "दोनों ला रहे हैं…",
   splitNoData: "अभी कोई डेटा नहीं — बटन दबाइए",
   simpleHeading: "आसान शब्दों में",
+  legalDetailTitle: "कानून और वजह पढ़िए",
+  legalDetailHint: "कानून की असली लाइनें और उनसे निकलने वाले कदम देखिए।",
   proofTitle: "हर लाइन का सबूत",
   proofEmpty: "आपका सबूत यहाँ दिखेगा",
   proofHint: "हर जवाब के पीछे असली Act, Rule या Treaty होता है, साथ में सरकारी पेज का लिंक।",
   openSource: "सरकारी पेज खोलिए",
+  showAllSources: "सारे स्रोत देखिए",
+  showFewerSources: "कम स्रोत देखिए",
   confidence: "भरोसा",
   escalate: "जानकार के पास भेजिए",
   escalateSending: "भेजा जा रहा है…",
@@ -220,6 +237,7 @@ const hi: Strings = {
   backendOffline: "सर्वर बंद है",
   loading: "लोड हो रहा है…",
   errorHint: "सर्वर से बात नहीं हो पाई। क्या backend चालू है?",
+  requestTimedOut: "जवाब आने में ज़्यादा समय लग रहा है। कृपया फिर कोशिश कीजिए।",
   disclaimer: "यह सिर्फ़ जानकारी है, कानूनी सलाह नहीं। फ़ाइल करने से पहले सरकारी लिंक ज़रूर देखिए।",
   glossaryTitle: "ये शब्द आपको मिलेंगे",
   footerNote: "हर जवाब असली कानून के हवाले से, कानूनी सलाह नहीं। सरकारी स्रोत से ज़रूर मिलाइए।",
@@ -250,6 +268,7 @@ const ta: Strings = {
   listening: "கேட்கிறோம், நிறுத்த அழுத்துங்கள்",
   listeningHint: "உங்கள் குரல் கேட்கிறது",
   voiceUnsupported: "இந்த உலாவியில் குரல் உள்ளீடு இல்லை. கீழே உங்கள் கேள்வியை எழுதுங்கள்.",
+  voiceError: "உங்கள் குரல் தெளிவாகக் கேட்கவில்லை. மீண்டும் பேசுங்கள் அல்லது கேள்வியை எழுதுங்கள்.",
   or: "அல்லது",
   placeholder: "உங்கள் கேள்வியை இங்கே எழுதுங்கள், உங்கள் சொந்த வார்த்தைகளில்",
   send: "பதிலைப் பெறுங்கள்",
@@ -268,10 +287,14 @@ const ta: Strings = {
   splitLoading: "இரண்டையும் கொண்டு வருகிறோம்…",
   splitNoData: "இன்னும் தரவு இல்லை — பொத்தானை அழுத்துங்கள்",
   simpleHeading: "எளிய வார்த்தைகளில்",
+  legalDetailTitle: "சட்டமும் காரணமும் படியுங்கள்",
+  legalDetailHint: "சட்டத்தின் சரியான பகுதிகளையும் அவை ஆதரிக்கும் நடவடிக்கைகளையும் பாருங்கள்.",
   proofTitle: "ஒவ்வொரு வரிக்கும் ஆதாரம்",
   proofEmpty: "உங்கள் ஆதாரம் இங்கே தெரியும்",
   proofHint: "ஒவ்வொரு பதிலுக்கும் பின்னால் உண்மையான Act, Rule அல்லது Treaty இருக்கும், அரசு பக்க இணைப்புடன்.",
   openSource: "அரசு பக்கத்தைத் திறக்கவும்",
+  showAllSources: "அனைத்து ஆதாரங்களையும் காட்டு",
+  showFewerSources: "குறைவான ஆதாரங்களைக் காட்டு",
   confidence: "நம்பிக்கை",
   escalate: "நிபுணரிடம் அனுப்புங்கள்",
   escalateSending: "அனுப்பப்படுகிறது…",
@@ -292,6 +315,7 @@ const ta: Strings = {
   backendOffline: "சர்வர் இயங்கவில்லை",
   loading: "ஏற்றப்படுகிறது…",
   errorHint: "சர்வரைத் தொடர்பு கொள்ள முடியவில்லை. backend இயங்குகிறதா?",
+  requestTimedOut: "இதற்கு வழக்கத்தை விட அதிக நேரம் ஆகிறது. மீண்டும் முயற்சிக்கவும்.",
   disclaimer: "இது தகவல் மட்டுமே, சட்ட ஆலோசனை அல்ல. பதிவு செய்வதற்கு முன் அரசு இணைப்புகளைச் சரிபார்க்கவும்.",
   glossaryTitle: "நீங்கள் சந்திக்கும் சொற்கள்",
   footerNote: "மேற்கோள்களுடன் கூடிய வழிகாட்டல், சட்ட ஆலோசனை அல்ல. அரசு ஆதாரங்களுடன் சரிபார்க்கவும்.",

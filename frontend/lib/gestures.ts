@@ -351,12 +351,9 @@ export function usePress(
     if (haptic && "vibrate" in navigator) {
       navigator.vibrate(10);
     }
-    setTimeout(() => { pressedRef.current = false; }, delay || 150);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => { pressedRef.current = false; }, delay || 150);
   }, [onPress, haptic, delay]);
-
-  useEffect(() => {
-    return () => { const timeout = timeoutRef.current; if (timeout) clearTimeout(timeout); };
-  }, []);
 
   return {
     onPointerDown: trigger,

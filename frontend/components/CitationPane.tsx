@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import type { Citation } from "@/lib/api";
 import { Icon } from "@/components/Icon";
 import { t } from "@/lib/i18n";
@@ -19,6 +20,7 @@ function plain(span: string): string {
 
 export function CitationPane({ citations, corpusVersion, lang = "en" }: { citations: Citation[]; corpusVersion?: string; lang?: string }) {
   const s = t(lang);
+  const [showAll, setShowAll] = useState(false);
   if (!citations?.length) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-stone-300 bg-white p-5">
@@ -36,7 +38,7 @@ export function CitationPane({ citations, corpusVersion, lang = "en" }: { citati
       </div>
       <p className="text-xs text-stone-600 leading-relaxed">{s.proofHint}</p>
       <div className="space-y-3">
-        {citations.map((c, i) => (
+        {(showAll ? citations : citations.slice(0, 2)).map((c, i) => (
           <a
             key={c.id}
             href={c.deep_link}
@@ -64,6 +66,16 @@ export function CitationPane({ citations, corpusVersion, lang = "en" }: { citati
           </a>
         ))}
       </div>
+      {citations.length > 2 && (
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          aria-expanded={showAll}
+          className="pressable w-full rounded-xl border-2 border-stone-200 bg-white px-3 py-2.5 text-sm font-bold text-ink hover:border-stone-400"
+        >
+          {showAll ? s.showFewerSources : s.showAllSources}
+        </button>
+      )}
       <p className="text-xs text-stone-500 leading-relaxed bg-stone-50 border border-stone-200 rounded-xl p-3">{s.disclaimer}</p>
     </div>
   );

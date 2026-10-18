@@ -7,6 +7,7 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (v: s
   const s = t(lang);
   const [recording, setRecording] = useState(false);
   const [unsupported, setUnsupported] = useState(false);
+  const [failed, setFailed] = useState(false);
   const recRef = useRef<any>(null);
 
   async function toggle() {
@@ -25,6 +26,7 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (v: s
       return;
     }
     setUnsupported(false);
+    setFailed(false);
     const rec = new SpeechRecognition();
     rec.lang = lang === "hi" ? "hi-IN" : lang === "ta" ? "ta-IN" : lang === "kn" ? "kn-IN" : "en-IN";
     rec.interimResults = false;
@@ -34,9 +36,16 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (v: s
       const text = e.results[0][0].transcript;
       onTranscript(text);
     };
-    rec.onerror = () => setRecording(false);
+    rec.onerror = () => {
+      setRecording(false);
+      setFailed(true);
+    };
     recRef.current = rec;
-    rec.start();
+    try {
+      rec.start();
+    } catch {
+      setFailed(true);
+    }
   }
 
   return (
@@ -60,6 +69,11 @@ export function VoiceButton({ onTranscript, lang = "hi" }: { onTranscript: (v: s
       {unsupported && (
         <p role="status" className="max-w-xs text-center text-xs leading-relaxed text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
           {s.voiceUnsupported}
+        </p>
+      )}
+      {failed && !unsupported && (
+        <p role="status" className="max-w-xs text-center text-xs leading-relaxed text-red-900 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+          {s.voiceError}
         </p>
       )}
     </div>
