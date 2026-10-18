@@ -88,7 +88,9 @@ None of these block the demo. The core promise, real quoted law with links and a
 
 ## Project status and handoff notes
 
-Last updated 2026-09-20. This section is the running record of where the project stands, so anyone picking it up knows what is finished, what was deliberately left, and what to do next.
+**Current availability check (2026-10-18):** the public frontend at `https://ip-sakti-sahayak-ashen.vercel.app` returned HTTP 200. The deployed backend at `https://sakti-api.onrender.com/health` did not return a response within a 60-second check, so the end-to-end public demo must be treated as **currently unverified / likely unavailable** until the API health endpoint is restored and rechecked. The codebase and its local test/evaluation instructions remain available below.
+
+The historical evidence that follows was last updated 2026-09-20. It is retained as a handoff record, not a statement of current service availability.
 
 ### Production (2026-09-20, measured live)
 
