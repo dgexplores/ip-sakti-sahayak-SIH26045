@@ -10,8 +10,8 @@ module.exports = {
         stone: { 50: "#FAFAF9", 100: "#F5F5F4" }
       },
       fontFamily: {
-        serif: ["Fraunces", "ui-serif", "Georgia", "serif"],
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+        serif: ["Source Serif 4", "ui-serif", "Georgia", "serif"],
+        sans: ["Source Sans 3", "ui-sans-serif", "system-ui", "sans-serif"]
       },
       boxShadow: {
         card: "0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06)",

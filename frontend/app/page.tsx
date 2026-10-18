@@ -11,7 +11,7 @@ import { SplitViewTrigger } from "@/components/SplitView";
 import { Icon, type IconName } from "@/components/Icon";
 import { AnswerText } from "@/components/AnswerText";
 import { FluidButton } from "@/components/ui/FluidButtons";
-import { Toolbar, Card } from "@/components/ui/Materials";
+import { Toolbar } from "@/components/ui/Materials";
 import { GlossaryBar } from "@/components/GlossaryTooltip";
 import { LANGS, EXAMPLES, t, readStoredLang, storeLang } from "@/lib/i18n";
 import { chat, getCorpusVersion, ApiError, type ChatResponse, type FormulationAnswer, type Jurisdiction } from "@/lib/api";
@@ -104,168 +104,142 @@ export default function Page() {
   }
 
   const steps = [s.step1, s.step2, s.step3];
+  const activeStage = res ? 3 : 1;
 
   return (
-    <div className="min-h-screen bg-[#FFFBF5]">
-      <Toolbar className="border-b border-stone-200/60">
-        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <div className="w-9 h-9 rounded-xl bg-ink text-white grid place-items-center font-extrabold text-xs shrink-0">IP</div>
+    <div className="min-h-screen overflow-x-hidden bg-[#f5f2ea] text-ink selection:bg-saffron/30">
+      <Toolbar className="border-b border-[#ddd7c9] bg-[#fbfaf6]">
+        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-6">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indiaBlue text-xs font-extrabold tracking-tight text-white">IP</div>
           <div className="min-w-0">
-            <div className="h-display text-[17px] font-extrabold leading-none">IP-SAKTI Sahayak</div>
-            <div className="text-xs text-stone-600">{s.tagline}</div>
+            <div className="h-display text-[18px] font-extrabold leading-none">IP-SAKTI Sahayak</div>
+            <div className="mt-1 text-xs text-stone-600">{s.tagline}</div>
           </div>
-
-          <div className="ml-auto order-3 sm:order-none w-full sm:w-auto flex items-center justify-center gap-1 p-1 rounded-full bg-stone-100 border border-stone-200">
-            {LANGS.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => chooseLang(l.id)}
-                aria-pressed={lang === l.id}
-                title={l.english}
-                className={`px-3 py-1.5 rounded-full text-sm font-bold transition-colors ${
-                  lang === l.id ? "bg-ink text-white" : "text-stone-700 hover:bg-white"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+          <div className="order-3 flex w-full items-center justify-start gap-3 sm:order-none sm:ml-auto sm:w-auto sm:justify-end">
+            <span className={`hidden text-[11px] font-mono tabular-nums sm:inline ${corpusError ? "text-red-800" : "text-stone-500"}`}>
+              {corpus ? `${corpus.document_count} ${s.proofTitle.toLowerCase()}` : corpusError ? s.backendOffline : s.loading}
+            </span>
+            <div className="flex items-center gap-0.5 rounded-lg border border-[#ddd7c9] bg-white p-1">
+              {LANGS.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => chooseLang(l.id)}
+                  aria-pressed={lang === l.id}
+                  title={l.english}
+                  className={`rounded-md px-2.5 py-1.5 text-sm font-bold transition-colors ${lang === l.id ? "bg-indiaBlue text-white" : "text-stone-700 hover:bg-stone-100"}`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="mx-auto max-w-[1180px] px-4 sm:px-6 pb-3 flex flex-wrap items-center gap-3">
-          <JurisdictionToggle value={jurisdiction} onChange={setJurisdiction} lang={lang} />
-          <span
-            className={`ml-auto text-[11px] font-mono tabular-nums px-2 py-1 rounded-full border ${
-              corpusError ? "bg-red-50 border-red-200 text-red-800" : "bg-stone-50 border-stone-200 text-stone-600"
-            }`}
-          >
-            {corpus ? `${corpus.document_count} docs · ${corpus.corpus_version}` : corpusError ? s.backendOffline : s.loading}
-          </span>
-        </div>
-        <div className="h-1 w-full flex" aria-hidden>
-          <div className={`flex-1 ${jurisdiction === "india" ? "bg-saffron" : "bg-stone-200"}`} style={{ transition: "background-color 180ms var(--ease-out)" }} />
-          <div className={`flex-1 ${jurisdiction === "international" ? "bg-indiaBlue" : "bg-stone-200"}`} style={{ transition: "background-color 180ms var(--ease-out)" }} />
         </div>
       </Toolbar>
 
-      <main id="main" className="mx-auto max-w-[1180px] px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 items-start">
-        <div className="space-y-5 min-w-0">
-          {!res && (
-            <div className="stagger-in">
-              <h1 className="h-display text-balance text-[26px] sm:text-[32px] font-extrabold leading-[1.15] tracking-tight">
-                {s.headline}{" "}
-                <span className={jurisdiction === "india" ? "text-saffron-dark" : "text-indiaBlue"}>{s.headlineAccent}</span>
-              </h1>
-              <p className="text-[15px] leading-relaxed text-stone-700 mt-3 max-w-[56ch]">{s.subhead}</p>
+      <main id="main" className="mx-auto max-w-[1240px] px-4 pb-10 pt-8 sm:px-6 sm:pt-12">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0">
+            {!res && (
+              <section className="stagger-in max-w-[780px]">
+                <h1 className="h-display text-balance text-[34px] font-extrabold leading-[1.04] tracking-[-0.03em] text-ink sm:text-[52px]">
+                  {s.headline} <span className="text-saffron-dark">{s.headlineAccent}</span>
+                </h1>
+                <p className="mt-5 max-w-[63ch] text-[16px] leading-7 text-stone-700 sm:text-[17px]">{s.subhead}</p>
+              </section>
+            )}
 
-              <ol className="mt-5 grid gap-2 sm:grid-cols-3">
-                {steps.map((label, i) => (
-                  <li key={label} className="flex items-center gap-2.5 text-sm">
-                    <span className="w-6 h-6 rounded-full bg-ink text-white grid place-items-center text-xs font-bold shrink-0">{i + 1}</span>
-                    <span className="text-stone-700 leading-snug">{label}</span>
+            <ol className={`my-8 grid max-w-[760px] grid-cols-1 gap-3 border-y border-[#ddd7c9] py-4 sm:grid-cols-3 sm:gap-0 ${res ? "mt-0" : ""}`} aria-label="How IP-SAKTI works">
+              {steps.map((label, i) => {
+                const current = i + 1 === activeStage;
+                const complete = i + 1 < activeStage;
+                return (
+                  <li key={label} className="flex min-w-0 items-center gap-2 pr-3 text-sm">
+                    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-extrabold ${current ? "bg-saffron text-white" : complete ? "bg-indiaBlue text-white" : "bg-[#e7e2d8] text-stone-600"}`}>{complete ? <Icon name="check" className="w-3.5 h-3.5" strokeWidth={3} /> : i + 1}</span>
+                    <span className={`min-w-0 leading-snug ${current ? "font-bold text-ink" : "text-stone-600"}`}>{label}</span>
                   </li>
-                ))}
-              </ol>
-            </div>
-          )}
+                );
+              })}
+            </ol>
 
-          {/* The one thing to do on this page. */}
-          <Card className="overflow-hidden stagger-in" style={{ animationDelay: "60ms" } as React.CSSProperties}>
-            <div className="px-5 pt-5 pb-4">
-              <h2 className="h-display text-lg font-extrabold leading-tight">{s.askTitle}</h2>
-              <p className="text-sm text-stone-600 mt-1">{s.askHint}</p>
-
-              <div className="mt-4 flex flex-col items-center gap-3">
-                <VoiceButton lang={lang} onTranscript={(v) => { setQuery(v); onSend(v); }} />
-                <span className="text-xs font-bold uppercase tracking-widest text-stone-400">{s.or}</span>
-                <textarea
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onSend(); }}
-                  placeholder={s.placeholder}
-                  rows={3}
-                  aria-label={s.askTitle}
-                  className="w-full resize-none rounded-2xl border-2 border-stone-200 bg-stone-50 px-4 py-3 text-[16px] leading-relaxed placeholder:text-stone-500 focus:outline-none focus:border-ink focus:bg-white"
-                  style={{ transition: "border-color 160ms var(--ease-out), background-color 160ms var(--ease-out)" }}
-                />
+            <section className="overflow-hidden rounded-2xl border border-[#d7d0c2] bg-white shadow-[0_12px_30px_rgba(48,42,30,0.08)]">
+              <div className="border-b border-[#e5dfd3] bg-[#fffdf9] px-5 py-4 sm:px-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="h-display text-[22px] font-extrabold leading-tight">{s.askTitle}</h2>
+                    <p className="mt-1 text-sm leading-relaxed text-stone-600">{s.askHint}</p>
+                  </div>
+                  <JurisdictionToggle value={jurisdiction} onChange={setJurisdiction} lang={lang} />
+                </div>
               </div>
 
-              <FluidButton
-                onClick={() => onSend()}
-                disabled={loading || !query.trim()}
-                className="mt-3 w-full"
-                size="lg"
-                loading={loading}
-                loadingText={s.sending}
-                icon={<Icon name="next" className="w-4 h-4" />}
-              >
-                {s.send}
-              </FluidButton>
-
-              <label className="mt-3 flex items-center gap-2.5 text-sm cursor-pointer">
-                <input type="checkbox" checked={eli5} onChange={(e) => setEli5(e.target.checked)} className="w-4 h-4 accent-ink" />
-                <span className="font-bold">{s.simpleMode}</span>
-                <span className="text-stone-600">{s.simpleModeHint}</span>
-              </label>
-
-              {error && (
-                <div className="mt-3 rounded-xl bg-red-50 border-2 border-red-200 p-3 text-sm text-red-900 flex gap-2">
-                  <Icon name="warn" className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div className="min-w-0 flex-1">
-                    <p>{error}</p>
-                    <button type="button" onClick={() => onSend()} className="mt-2 font-bold underline underline-offset-2 hover:no-underline">
-                      {s.errRetry}
-                    </button>
+              <div className="p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+                  <textarea
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onSend(); }}
+                    placeholder={s.placeholder}
+                    rows={4}
+                    aria-label={s.askTitle}
+                    className="min-h-[132px] w-full flex-1 resize-none rounded-xl border border-[#cfc7b9] bg-[#fcfbf8] px-4 py-3 text-[16px] leading-7 placeholder:text-stone-500 focus:border-indiaBlue focus:bg-white focus:outline-none"
+                  />
+                  <div className="flex shrink-0 items-center justify-center border-t border-[#e5dfd3] pt-4 sm:w-[152px] sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+                    <VoiceButton lang={lang} onTranscript={(v) => { setQuery(v); onSend(v); }} />
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="border-t border-stone-200 bg-stone-50/70 px-5 py-4">
-              <div className="text-xs font-bold uppercase tracking-widest text-stone-500">{s.examplesLabel}</div>
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                {EXAMPLES.map((ex) => (
-                  <FluidButton
-                    key={ex.q}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { setQuery(ex.q); setJurisdiction(ex.jurisdiction as Jurisdiction); onSend(ex.q); }}
-                    className="gap-2 pl-2.5 pr-3.5 py-2"
-                    icon={
-                      <span className={`w-6 h-6 rounded-full grid place-items-center shrink-0 ${ex.jurisdiction === "india" ? "bg-saffron/15 text-saffron-dark" : "bg-indiaBlue/10 text-indiaBlue"}`}>
-                        <Icon name={ex.icon as IconName} className="w-3.5 h-3.5" />
-                      </span>
-                    }
-                    iconPosition="left"
-                  >
-                    {ex.label[lang as keyof typeof ex.label] ?? ex.label.en}
+                <div className="mt-4 flex flex-col gap-3 border-t border-[#e5dfd3] pt-4 sm:flex-row sm:items-center">
+                  <label className="flex cursor-pointer items-start gap-2.5 text-sm sm:flex-1">
+                    <input type="checkbox" checked={eli5} onChange={(e) => setEli5(e.target.checked)} className="mt-0.5 h-4 w-4 accent-indiaBlue" />
+                    <span><span className="font-bold text-ink">{s.simpleMode}</span><span className="ml-1.5 text-stone-600">{s.simpleModeHint}</span></span>
+                  </label>
+                  <FluidButton onClick={() => onSend()} disabled={loading || !query.trim()} className="sm:min-w-[220px]" size="lg" loading={loading} loadingText={s.sending} icon={<Icon name="next" className="w-4 h-4" />}>
+                    {s.send}
                   </FluidButton>
-                ))}
+                </div>
+
+                {error && (
+                  <div className="mt-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900" role="alert">
+                    <Icon name="warn" className="mt-0.5 h-4 w-4 shrink-0" />
+                    <div className="min-w-0 flex-1"><p>{error}</p><button type="button" onClick={() => onSend()} className="mt-2 font-bold underline underline-offset-2 hover:no-underline">{s.errRetry}</button></div>
+                  </div>
+                )}
+
+                <div className="mt-5">
+                  <div className="text-xs font-bold tracking-[0.08em] text-stone-500">{s.examplesLabel}</div>
+                  <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-2">
+                    {EXAMPLES.map((ex) => (
+                      <button key={ex.q} type="button" onClick={() => { setQuery(ex.q); setJurisdiction(ex.jurisdiction as Jurisdiction); onSend(ex.q); }} className="inline-flex items-center gap-1.5 text-sm font-bold text-indiaBlue underline decoration-indiaBlue/30 underline-offset-4 hover:decoration-indiaBlue">
+                        <Icon name={ex.icon as IconName} className="h-3.5 w-3.5" />
+                        {ex.label[lang as keyof typeof ex.label] ?? ex.label.en}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </Card>
+            </section>
 
           {/* Offered, not imposed. */}
           {!showTriage ? (
             <button
               onClick={() => setShowTriage(true)}
-              className="pressable w-full text-left rounded-2xl border-2 border-dashed border-stone-300 bg-white p-4 flex items-center gap-3 hover:border-stone-400 stagger-in"
+              className="pressable mt-5 flex w-full items-center gap-3 border-y border-[#ddd7c9] py-5 text-left hover:text-indiaBlue stagger-in"
               style={{ animationDelay: "120ms" }}
             >
-              <span className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 grid place-items-center text-amber-700 shrink-0">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-saffron-light text-saffron-dark">
                 <Icon name="check" className="w-4 h-4" />
               </span>
               <span className="min-w-0">
                 <span className="block text-sm font-bold">{s.notSure}</span>
                 <span className="block text-sm text-stone-600 mt-0.5">{s.notSureHint}</span>
               </span>
-              <span className="ml-auto text-sm font-bold text-ink whitespace-nowrap hidden sm:flex items-center gap-1">
+              <span className="ml-auto hidden whitespace-nowrap text-sm font-bold text-indiaBlue sm:flex items-center gap-1">
                 {s.openTriage}
                 <Icon name="next" className="w-3.5 h-3.5" />
               </span>
             </button>
           ) : (
-            <div className="stagger-in">
+            <div className="mt-5 stagger-in">
               <FormulationFlow
                 lang={lang}
                 onComplete={(ans) => { setFormulation(ans); onSend(query || "Classify my Ayurvedic formulation", ans); }}
@@ -279,8 +253,8 @@ export default function Page() {
           {res?.firewall?.mixed_query && <SplitViewTrigger query={query} lang={lang} />}
 
           {res && (
-            <Card ref={answerRef} className="overflow-hidden stagger-in" style={{ borderColor: jurisdiction === "india" ? "#FF9933" : "#0B2239" } as React.CSSProperties}>
-              <div className={`px-5 py-3 flex items-center gap-3 ${jurisdiction === "india" ? "bg-saffron text-white" : "bg-indiaBlue text-white"}`}>
+            <section ref={answerRef} className="mt-8 overflow-hidden rounded-2xl border border-[#d7d0c2] bg-white shadow-[0_12px_30px_rgba(48,42,30,0.08)] stagger-in">
+              <div className={`flex items-center gap-3 px-5 py-3 ${jurisdiction === "india" ? "bg-indiaBlue text-white" : "bg-[#314a65] text-white"}`}>
                 <span className="inline-flex items-center gap-2 text-sm font-extrabold">
                   <Icon name={res.jurisdiction === "india" ? "india" : "world"} className="w-4 h-4" />
                   {res.jurisdiction === "india" ? s.answerIndia : s.answerWorld}
@@ -288,17 +262,17 @@ export default function Page() {
                 <span className="ml-auto"><ConfidenceBadge score={res.confidence.score} abstain={res.confidence.abstain} label={s.confidence} /></span>
               </div>
 
-              <div className="p-5">
+              <div className="p-5 sm:p-6">
                 {res.firewall && res.firewall.status !== "clean" && (
-                  <div className="mb-4 rounded-xl bg-sky-50 border-2 border-sky-200 p-3 text-sm font-medium text-sky-900 flex gap-2">
+                  <div className="mb-5 flex gap-2 border-b border-sky-200 bg-sky-50 px-3 py-3 text-sm font-medium text-sky-900">
                     <Icon name="firewall" className="w-4 h-4 shrink-0 mt-0.5 text-sky-700" />
                     <span>{res.firewall.message}</span>
                   </div>
                 )}
 
                 {res.answer_simple && (
-                  <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4">
-                    <div className="text-xs font-extrabold tracking-widest uppercase text-amber-900 flex items-center gap-2">
+                  <div className="border-b-2 border-saffron bg-saffron-light px-4 py-4">
+                    <div className="flex items-center gap-2 text-xs font-extrabold tracking-[0.08em] text-amber-900">
                       <Icon name="simple" className="w-3.5 h-3.5" />
                       {s.simpleHeading}
                     </div>
@@ -306,14 +280,14 @@ export default function Page() {
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl border-2 border-stone-200 bg-white overflow-hidden">
+                <div className="mt-5 overflow-hidden border-y border-[#e5dfd3] bg-[#fffdf9]">
                   <button
                     type="button"
                     onClick={() => setShowLegalDetail((value) => !value)}
                     aria-expanded={showLegalDetail}
-                    className="pressable flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-stone-50"
+                    className="pressable flex w-full items-center gap-3 px-4 py-4 text-left hover:bg-[#f7f4ed]"
                   >
-                    <span className="w-9 h-9 rounded-xl bg-stone-100 text-ink grid place-items-center shrink-0">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#e9e4da] text-indiaBlue">
                       <Icon name="cite" className="w-4 h-4" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -323,7 +297,7 @@ export default function Page() {
                     <Icon name="next" className={`w-4 h-4 shrink-0 transition-transform ${showLegalDetail ? "rotate-90" : ""}`} />
                   </button>
                   {showLegalDetail && (
-                    <div className="border-t border-stone-200 px-4 py-4 text-[16px] leading-7 text-ink">
+                    <div className="border-t border-[#e5dfd3] px-4 py-5 text-[16px] leading-7 text-ink">
                       <AnswerText lang={lang}>{res.answer}</AnswerText>
                     </div>
                   )}
@@ -335,7 +309,7 @@ export default function Page() {
                   </div>
                 )}
 
-                <div className="mt-5">
+                <div className="mt-6 border-b border-[#e5dfd3] pb-5">
                   <ConfidenceBar score={res.confidence.score} />
                   <p className="mt-2 text-sm text-stone-700 leading-relaxed">{res.confidence.rationale}</p>
                 </div>
@@ -347,54 +321,51 @@ export default function Page() {
                   </p>
                 )}
 
-                <div className="mt-5 pt-4 border-t border-stone-200 flex flex-col sm:flex-row gap-2">
+                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                   <div className="flex-1"><EscalateButton sessionId={sessionId} query={query} jurisdiction={jurisdiction} citations={res.citations} lang={lang} /></div>
                   <ExportButton answer={res.answer} citations={res.citations} jurisdiction={jurisdiction} corpusVersion={res.corpus_version} confidence={res.confidence} lang={lang} />
                 </div>
 
                 <p className="mt-4 text-xs text-stone-600 leading-relaxed">{s.disclaimer}</p>
               </div>
-            </Card>
+            </section>
           )}
-        </div>
-
-        <aside className="space-y-4 lg:sticky lg:top-[132px] min-w-0">
-          <Card className="p-4">
-            <CitationPane citations={res?.citations ?? []} corpusVersion={res?.corpus_version ?? corpus?.corpus_version} lang={lang} />
-          </Card>
-
-          {/* Jargon buster. The tooltips also work inline in the answer, but a
-              first-time reader has no way to know that, so the five terms that
-              carry the whole legal argument are surfaced up front. */}
-          <Card className="p-4">
-            <div className="text-xs font-extrabold tracking-widest uppercase text-stone-500">{s.glossaryTitle}</div>
-            <div className="mt-2.5">
-              <GlossaryBar lang={lang} />
-            </div>
-          </Card>
-
-          <div className="flex flex-wrap gap-2 text-xs font-bold">
-            {[s.noFees, s.free, s.offline, s.languages].map((label) => (
-              <span key={label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-900">
-                <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.5} />
-                {label}
-              </span>
-            ))}
           </div>
-        </aside>
+
+          <aside className="space-y-6 lg:sticky lg:top-[88px]">
+            <section className="border-y border-[#d7d0c2] py-5">
+              <div className="flex items-center gap-2 text-sm font-extrabold text-indiaBlue"><Icon name="firewall" className="h-4 w-4" />{s.proofTitle}</div>
+              <p className="mt-2 text-sm leading-6 text-stone-600">{s.proofHint}</p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
+                {[s.noFees, s.free, s.offline, s.languages].map((label) => (
+                  <span key={label} className="inline-flex items-center gap-1.5 rounded-md bg-[#e8f2ee] px-2.5 py-1.5 text-emerald-900"><Icon name="check" className="h-3.5 w-3.5" strokeWidth={2.5} />{label}</span>
+                ))}
+              </div>
+            </section>
+
+            {res && (
+              <section className="border-b border-[#d7d0c2] pb-6">
+                <CitationPane citations={res.citations} corpusVersion={res.corpus_version ?? corpus?.corpus_version} lang={lang} />
+              </section>
+            )}
+
+            <section>
+              <div className="text-xs font-extrabold tracking-[0.08em] text-stone-500">{s.glossaryTitle}</div>
+              <div className="mt-3"><GlossaryBar lang={lang} /></div>
+            </section>
+          </aside>
+        </div>
       </main>
 
-      <footer className="mx-auto max-w-[1180px] px-4 sm:px-6 pb-8">
-        <Card className="px-5 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs text-stone-600">
-            <span className="font-bold text-stone-800">IP-SAKTI Sahayak</span>
-            <span className="leading-relaxed">{s.footerNote}</span>
-            <span className="sm:ml-auto flex items-center gap-4 font-bold">
+      <footer className="mx-auto max-w-[1240px] px-4 pb-8 sm:px-6">
+        <div className="flex flex-col items-start gap-2 border-t border-[#d7d0c2] pt-5 text-xs text-stone-600 sm:flex-row sm:items-center">
+          <span className="font-bold text-stone-800">IP-SAKTI Sahayak</span>
+          <span className="leading-relaxed">{s.footerNote}</span>
+          <span className="flex gap-4 font-bold sm:ml-auto">
               <a href="/privacy" className="hover:text-ink underline-offset-2 hover:underline">{s.privacy}</a>
               <a href="/terms" className="hover:text-ink underline-offset-2 hover:underline">{s.terms}</a>
-            </span>
-          </div>
-        </Card>
+          </span>
+        </div>
       </footer>
     </div>
   );
